@@ -143,6 +143,23 @@ export async function uploadImageApi(file: File) {
   );
 }
 
+// Bookings
+export interface Booking {
+  id: string;
+  user_id: string;
+  location_id: string;
+  facility_id?: string | null;
+  status: "pending" | "confirmed" | "cancelled";
+  start_time: string;
+  end_time: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export async function getBookingsApi() {
+  return apiFetch<Booking[]>("/bookings");
+}
+
 // Locations
 export interface Location {
   id: string;
@@ -195,6 +212,20 @@ export interface GamingCenter {
 export async function getGamingCentersApi(clientId?: string) {
   const query = clientId ? `?clientId=${encodeURIComponent(clientId)}` : "";
   return apiFetch<GamingCenter[]>(`/gaming${query}`);
+}
+
+// Client statistics (admin overview)
+export interface ClientStatistics {
+  total: number;
+  pending: number;
+  approved: number;
+  active: number;
+  rejected: number;
+  suspended: number;
+}
+
+export async function getClientStatisticsApi() {
+  return apiFetch<ClientStatistics>("/clients/statistics");
 }
 
 // Clients (business onboarding)

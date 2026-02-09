@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Users,
   Gamepad2,
@@ -23,74 +23,66 @@ import {
 } from "@/components/ui/Table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-
-// Sample data
-const revenueData = [
-  { month: "Jan", revenue: 45000, bookings: 320 },
-  { month: "Feb", revenue: 52000, bookings: 380 },
-  { month: "Mar", revenue: 48000, bookings: 350 },
-  { month: "Apr", revenue: 61000, bookings: 420 },
-  { month: "May", revenue: 55000, bookings: 390 },
-  { month: "Jun", revenue: 67000, bookings: 450 },
-];
-
-const gamingData = [
-  { name: "Gaming Zone A", bookings: 120, revenue: 15000 },
-  { name: "Gaming Zone B", bookings: 95, revenue: 12000 },
-  { name: "Gaming Zone C", bookings: 80, revenue: 10000 },
-  { name: "Gaming Zone D", bookings: 65, revenue: 8000 },
-];
-
-const recentBookings = [
-  {
-    id: "#BK-001",
-    customer: "John Doe",
-    facility: "Gaming Zone A",
-    date: "2026-01-27",
-    time: "14:00",
-    amount: 150,
-    status: "confirmed",
-  },
-  {
-    id: "#BK-002",
-    customer: "Jane Smith",
-    facility: "Gaming Zone B",
-    date: "2026-01-27",
-    time: "16:00",
-    amount: 200,
-    status: "pending",
-  },
-  {
-    id: "#BK-003",
-    customer: "Mike Johnson",
-    facility: "Gaming Zone C",
-    date: "2026-01-28",
-    time: "10:00",
-    amount: 120,
-    status: "confirmed",
-  },
-  {
-    id: "#BK-004",
-    customer: "Sarah Williams",
-    facility: "Gaming Zone A",
-    date: "2026-01-28",
-    time: "18:00",
-    amount: 180,
-    status: "confirmed",
-  },
-  {
-    id: "#BK-005",
-    customer: "David Brown",
-    facility: "Gaming Zone D",
-    date: "2026-01-29",
-    time: "12:00",
-    amount: 100,
-    status: "pending",
-  },
-];
+import {
+  getBookingsApi,
+  getClientStatisticsApi,
+  getGamingCentersApi,
+  Booking,
+  GamingCenter,
+  ClientStatistics,
+} from "@/lib/api";
 
 export default function DashboardPage() {
   const { user } = useAuth();
+
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [gamingCenters, setGamingCenters] = useState<GamingCenter[]>([]);
+  const [clientStats, setClientStats] = useState<ClientStatistics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [bookingsRes, gamingRes, statsRes] = await Promise.allSettled([
+          getBookingsApi(),
+          getGamingCentersApi(user?.role === "client" ? user.id : undefined),
+          // Only admins can access /clients/statistics
+          user?.role === "admin" ? getClientStatisticsApi() : Promise.resolve(null),
+        ]);
+
+        if (!isMounted) return;
+
+        if (bookingsRes.status === "fulfilled") {
+          setBookings(bookingsRes.value || []);
+        }
+        if (gamingRes.status === "fulfilled") {
+          setGamingCenters(gamingRes.value || []);
+        }
+        if (statsRes.status === "fulfilled" && statsRes.value) {
+          setClientStats(statsRes.value as ClientStatistics);
+        }
+      } catch (err) {
+        if (!isMounted) return;
+        setError(err instanceof Error ? err.message : "Failed to load dashboard data");
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    load();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   const modules = useMemo(() => {
     if (!user || !user.modules || user.modules.length === 0) {
@@ -127,6 +119,40 @@ export default function DashboardPage() {
   const showBookings = modules.has("bookings");
   const showGaming = modules.has("gaming");
 
+  const totalBookings = bookings.length;
+  const gamingCount = gamingCenters.length;
+
+  const recentBookings = [...bookings]
+    .sort(
+      (a, b) =>
+        new Date(b.start_time).getTime() - new Date(a.start_time).getTime(),
+    )
+    .slice(0, 5);
+
+  const chartData = useMemo(() => {
+    // Simple grouping of bookings by month for a basic trend line
+    const byMonth: Record<
+      string,
+      { month: string; bookings: number }
+    > = {};
+
+    bookings.forEach((b) => {
+      const d = new Date(b.start_time);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+        2,
+        "0",
+      )}`;
+      if (!byMonth[key]) {
+        byMonth[key] = { month: key, bookings: 0 };
+      }
+      byMonth[key].bookings += 1;
+    });
+
+    return Object.values(byMonth).sort((a, b) =>
+      a.month.localeCompare(b.month),
+    );
+  }, [bookings]);
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -141,39 +167,49 @@ export default function DashboardPage() {
         </p>
       </div>
 
+      {error && (
+        <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {error}
+        </div>
+      )}
+
       {/* Stats Grid */}
       {showOverview && (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            title="Total Revenue"
-            value={formatCurrency(328000)}
-            change={{ value: 12.5, isPositive: true }}
-            icon={DollarSign}
-            iconColor="text-success"
+            title="Total Bookings"
+            value={formatNumber(totalBookings)}
+            change={undefined}
+            icon={Calendar}
+            iconColor="text-warning"
           />
           {user?.role !== "client" && (
             <StatCard
-              title="Active Users"
-              value={formatNumber(1248)}
-              change={{ value: 8.2, isPositive: true }}
+              title="Active Clients"
+              value={
+                clientStats ? formatNumber(clientStats.active) : loading ? "…" : "0"
+              }
+              change={undefined}
               icon={Users}
               iconColor="text-primary"
             />
           )}
           {showBookings && (
             <StatCard
-              title="Total Bookings"
-              value={formatNumber(2310)}
-              change={{ value: 5.3, isPositive: true }}
-              icon={Calendar}
-              iconColor="text-warning"
+              title="Pending Bookings"
+              value={formatNumber(
+                bookings.filter((b) => b.status === "pending").length,
+              )}
+              change={undefined}
+              icon={Activity}
+              iconColor="text-success"
             />
           )}
           {showGaming && (
             <StatCard
               title="Gaming Facilities"
-              value={formatNumber(12)}
-              change={{ value: 0, isPositive: true }}
+              value={formatNumber(gamingCount)}
+              change={undefined}
               icon={Gamepad2}
               iconColor="text-error"
             />
@@ -189,19 +225,14 @@ export default function DashboardPage() {
             <Card>
               <CardHeader>
                 <h2 className="text-lg font-medium text-text-primary">
-                  Revenue &amp; Bookings
+                  Bookings Trend
                 </h2>
               </CardHeader>
               <CardContent>
                 <LineChart
-                  data={revenueData}
+                  data={chartData}
                   dataKey="month"
                   lines={[
-                    {
-                      key: "revenue",
-                      name: "Revenue",
-                      color: "rgb(var(--primary))",
-                    },
                     {
                       key: "bookings",
                       name: "Bookings",
@@ -224,18 +255,13 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <BarChart
-                  data={gamingData}
+                  data={gamingCenters}
                   dataKey="name"
                   bars={[
                     {
-                      key: "bookings",
-                      name: "Bookings",
+                      key: "status",
+                      name: "Status (active=1, other=0)",
                       color: "rgb(var(--primary))",
-                    },
-                    {
-                      key: "revenue",
-                      name: "Revenue",
-                      color: "rgb(var(--success))",
                     },
                   ]}
                   height={300}
