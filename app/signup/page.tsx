@@ -12,11 +12,13 @@ function SignupPageInner() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [hint, setHint] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setHint(null);
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -27,10 +29,26 @@ function SignupPageInner() {
     }
     setLoading(true);
     try {
-      await registerApi({ name, email, password });
+      await registerApi({ name: name.trim(), email: email.trim(), password });
       router.replace("/login");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Registration failed");
+      const message =
+        err instanceof Error ? err.message : "Registration failed";
+
+      // Map common backend errors to friendlier messages
+      if (message.toLowerCase().includes("user with this email already exists")) {
+        setError("An account with this email already exists.");
+      } else if (
+        message.toLowerCase().includes("gateway timeout") ||
+        message.toLowerCase().includes("bad gateway")
+      ) {
+        setError("The server is taking too long to respond.");
+        setHint(
+          "Please try again in a few seconds. If this keeps happening, the backend may still be deploying."
+        );
+      } else {
+        setError(message || "Registration failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -103,9 +121,16 @@ function SignupPageInner() {
             Password must be at least 6 characters
           </p>
 
-          {error && (
-            <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-              {error}
+          {(error || hint) && (
+            <div className="space-y-1">
+              {error && (
+                <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {error}
+                </div>
+              )}
+              {hint && (
+                <p className="text-xs text-gray-500 px-1">{hint}</p>
+              )}
             </div>
           )}
 
