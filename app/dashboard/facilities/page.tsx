@@ -1,10 +1,10 @@
-\"use client\";
+"use client";
 
-import React, { useEffect, useMemo, useState } from \"react\";
-import { Filter, MapPin, Search } from \"lucide-react\";
-import { Card, CardContent, CardHeader } from \"@/components/ui/Card\";
-import Button from \"@/components/ui/Button\";
-import Input from \"@/components/ui/Input\";
+import React, { useEffect, useMemo, useState } from "react";
+import { Filter, MapPin, Search } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import {
   Table,
   TableBody,
@@ -12,7 +12,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from \"@/components/ui/Table\";
+} from "@/components/ui/Table";
 import {
   Facility,
   FacilityStatus,
@@ -20,20 +20,20 @@ import {
   Location,
   getFacilitiesApi,
   getLocationsApi,
-} from \"@/lib/api\";
+} from "@/lib/api";
 
 const FACILITY_TYPE_LABELS: Record<string, string> = {
-  \"gaming-pc\": \"Gaming PC\",
-  vr: \"VR\",
-  ps4: \"PS4\",
-  ps5: \"PS5\",
-  xbox: \"XBOX\",
-  \"snooker-table\": \"Snooker Table\",
-  \"table-tennis-table\": \"Table Tennis Table\",
-  \"futsal-field\": \"Futsal Field\",
-  \"cricket-pitch\": \"Cricket Pitch\",
-  \"padel-court\": \"Padel Court\",
-  other: \"Other\",
+  "gaming-pc": "Gaming PC",
+  vr: "VR",
+  ps4: "PS4",
+  ps5: "PS5",
+  xbox: "XBOX",
+  "snooker-table": "Snooker Table",
+  "table-tennis-table": "Table Tennis Table",
+  "futsal-field": "Futsal Field",
+  "cricket-pitch": "Cricket Pitch",
+  "padel-court": "Padel Court",
+  other: "Other",
 };
 
 function formatFacilityType(type: string) {
@@ -50,9 +50,9 @@ export default function FacilitiesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [searchQuery, setSearchQuery] = useState(\"\"\);
-  const [selectedType, setSelectedType] = useState<string>(\"\");
-  const [selectedLocationId, setSelectedLocationId] = useState<string>(\"\");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState<string>("");
+  const [selectedLocationId, setSelectedLocationId] = useState<string>("");
 
   useEffect(() => {
     let isMounted = true;
@@ -73,7 +73,7 @@ export default function FacilitiesPage() {
         setLocations(locationsRes);
       } catch (err: any) {
         if (!isMounted) return;
-        setError(err.message || \"Failed to load facilities\");
+        setError(err.message || "Failed to load facilities");
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -124,39 +124,39 @@ export default function FacilitiesPage() {
   }, [facilities]);
 
   return (
-    <div className=\"space-y-6\">
+    <div className="space-y-6">
       {/* Page Header */}
-      <div className=\"flex items-center justify-between\">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className=\"text-2xl font-semibold text-text-primary\">
+          <h1 className="text-2xl font-semibold text-text-primary">
             Facilities
           </h1>
-          <p className=\"mt-1 text-sm text-text-secondary\">
+          <p className="mt-1 text-sm text-text-secondary">
             Search and manage facilities across all locations
           </p>
         </div>
         <Button>
-          <Filter className=\"mr-2 h-4 w-4\" />
+          <Filter className="mr-2 h-4 w-4" />
           Advanced Filters
         </Button>
       </div>
 
       {error && (
-        <p className=\"text-sm text-error\" role=\"alert\">
+        <p className="text-sm text-error" role="alert">
           {error}
         </p>
       )}
 
       {/* Stats */}
-      <div className=\"grid gap-6 md:grid-cols-3\">
+      <div className="grid gap-6 md:grid-cols-3">
         <Card>
-          <CardContent className=\"pt-6\">
-            <div className=\"flex items-center justify-between\">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className=\"text-sm font-medium text-text-secondary\">
+                <p className="text-sm font-medium text-text-secondary">
                   Total Facilities
                 </p>
-                <p className=\"mt-2 text-2xl font-semibold text-text-primary\">
+                <p className="mt-2 text-2xl font-semibold text-text-primary">
                   {stats.total}
                 </p>
               </div>
@@ -164,13 +164,13 @@ export default function FacilitiesPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className=\"pt-6\">
-            <div className=\"flex items-center justify-between\">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className=\"text-sm font-medium text-text-secondary\">
+                <p className="text-sm font-medium text-text-secondary">
                   Active
                 </p>
-                <p className=\"mt-2 text-2xl font-semibold text-text-primary\">
+                <p className="mt-2 text-2xl font-semibold text-text-primary">
                   {stats.active}
                 </p>
               </div>
@@ -178,13 +178,13 @@ export default function FacilitiesPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className=\"pt-6\">
-            <div className=\"flex items-center justify-between\">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
               <div>
-                <p className=\"text-sm font-medium text-text-secondary\">
+                <p className="text-sm font-medium text-text-secondary">
                   In Maintenance
                 </p>
-                <p className=\"mt-2 text-2xl font-semibold text-text-primary\">
+                <p className="mt-2 text-2xl font-semibold text-text-primary">
                   {stats.maintenance}
                 </p>
               </div>
@@ -195,28 +195,28 @@ export default function FacilitiesPage() {
 
       {/* Search & Filters */}
       <Card>
-        <CardContent className=\"pt-6 space-y-4\">
-          <div className=\"flex flex-col gap-4 md:flex-row\">
+        <CardContent className="pt-6 space-y-4">
+          <div className="flex flex-col gap-4 md:flex-row">
             <Input
-              type=\"search\"
-              placeholder=\"Search facilities by name...\"
-              icon={<Search className=\"h-4 w-4\" />}
+              type="search"
+              placeholder="Search facilities by name..."
+              icon={<Search className="h-4 w-4" />}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className=\"flex-1\"
+              className="flex-1"
             />
 
-            <div className=\"flex flex-1 flex-col gap-4 md:flex-row\">
-              <div className=\"flex-1\">
-                <label className=\"mb-1 block text-xs font-medium text-text-secondary\">
+            <div className="flex flex-1 flex-col gap-4 md:flex-row">
+              <div className="flex-1">
+                <label className="mb-1 block text-xs font-medium text-text-secondary">
                   Type
                 </label>
                 <select
-                  className=\"w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text-primary shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/40\"
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text-primary shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
                 >
-                  <option value=\"\">All types</option>
+                  <option value="">All types</option>
                   {Object.entries(FACILITY_TYPE_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>
                       {label}
@@ -225,16 +225,16 @@ export default function FacilitiesPage() {
                 </select>
               </div>
 
-              <div className=\"flex-1\">
-                <label className=\"mb-1 block text-xs font-medium text-text-secondary\">
+              <div className="flex-1">
+                <label className="mb-1 block text-xs font-medium text-text-secondary">
                   Location
                 </label>
                 <select
-                  className=\"w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text-primary shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/40\"
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text-primary shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
                   value={selectedLocationId}
                   onChange={(e) => setSelectedLocationId(e.target.value)}
                 >
-                  <option value=\"\">All locations</option>
+                  <option value="">All locations</option>
                   {locations.map((location) => (
                     <option key={location.id} value={location.id}>
                       {location.name}
@@ -250,7 +250,7 @@ export default function FacilitiesPage() {
       {/* Facilities Table */}
       <Card>
         <CardHeader>
-          <h2 className=\"text-lg font-medium text-text-primary\">
+          <h2 className="text-lg font-medium text-text-primary">
             All Facilities
           </h2>
         </CardHeader>
@@ -270,7 +270,7 @@ export default function FacilitiesPage() {
                 <TableRow>
                   <TableCell
                     colSpan={5}
-                    className=\"py-8 text-center text-sm text-text-secondary\"
+                    className="py-8 text-center text-sm text-text-secondary"
                   >
                     Loading facilities...
                   </TableCell>
@@ -286,18 +286,18 @@ export default function FacilitiesPage() {
                         location.country,
                       ]
                         .filter(Boolean)
-                        .join(\", \")
+                        .join(", ")
                     : facility.location_id;
 
                   return (
                     <TableRow key={facility.id}>
-                      <TableCell className=\"font-medium\">
+                      <TableCell className="font-medium">
                         {facility.name}
                       </TableCell>
                       <TableCell>{formatFacilityType(facility.type)}</TableCell>
                       <TableCell>
-                        <div className=\"flex items-center gap-2\">
-                          <MapPin className=\"h-4 w-4 text-text-secondary\" />
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-text-secondary" />
                           <span>{locationLabel}</span>
                         </div>
                       </TableCell>
@@ -305,17 +305,17 @@ export default function FacilitiesPage() {
                         <span
                           className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                             facility.status === FacilityStatus.ACTIVE
-                              ? \"bg-success/10 text-success\"
+                              ? "bg-success/10 text-success"
                               : facility.status === FacilityStatus.MAINTENANCE
-                              ? \"bg-warning/10 text-warning\"
-                              : \"bg-border text-text-secondary\"
+                              ? "bg-warning/10 text-warning"
+                              : "bg-border text-text-secondary"
                           }`}
                         >
                           {formatStatus(facility.status)}
                         </span>
                       </TableCell>
                       <TableCell>
-                        {facility.capacity != null ? facility.capacity : \"-\"}
+                        {facility.capacity != null ? facility.capacity : "-"}
                       </TableCell>
                     </TableRow>
                   );
@@ -324,7 +324,7 @@ export default function FacilitiesPage() {
                 <TableRow>
                   <TableCell
                     colSpan={5}
-                    className=\"py-8 text-center text-sm text-text-secondary\"
+                    className="py-8 text-center text-sm text-text-secondary"
                   >
                     No facilities found.
                   </TableCell>
