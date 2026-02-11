@@ -1,14 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import {
   createClientWithUserApi,
   createLocationApi,
-  LocationPayload,
+  getClientByIdApi,
+  getLocationsApi,
+  updateClientApi,
+  type ClientDetail,
+  type LocationPayload,
+  type UpdateClientPayload,
 } from "@/lib/api";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -26,10 +31,15 @@ const initialErrorState: StepErrorState = {
 
 export default function DashboardSetupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const clientIdFromQuery = searchParams.get("clientId");
 
   const [currentStep, setCurrentStep] = useState<WizardStep>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [clientId, setClientId] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoadingExisting, setIsLoadingExisting] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Step 1: Business information
   const [businessForm, setBusinessForm] = useState({
@@ -67,6 +77,66 @@ export default function DashboardSetupPage() {
   const [step2Errors, setStep2Errors] = useState<StepErrorState>(
     initialErrorState
   );
+
+  // Prefill when editing an existing business
+  useEffect(() => {
+    if (!clientIdFromQuery) return;
+
+    setIsEditing(true);
+    setIsLoadingExisting(true);
+    setLoadError(null);
+
+    async function loadExisting() {
+      try {
+        const client: ClientDetail = await getClientByIdApi(clientIdFromQuery);
+        const clientLocations = await getLocationsApi(clientIdFromQuery);
+
+        setClientId(client.id);
+
+        setBusinessForm((prev) => ({
+          ...prev,
+          companyName: client.company_name || "",
+          legalName: (client as any).legal_name || "",
+          contactName: client.contact_name || "",
+          email: client.email || "",
+          phone: client.phone || "",
+          address: client.address || "",
+          city: client.city || "",
+          country: client.country || "",
+          taxId: client.tax_id || "",
+          registrationNumber: client.company_registration_number || "",
+          description: client.description || "",
+          logoUrl: client.logo_url || "",
+          adminPassword: "",
+        }));
+
+        if (clientLocations && clientLocations.length > 0) {
+          const mapped: LocationPayload[] = clientLocations.map((loc) => ({
+            id: loc.id,
+            client_id: loc.client_id,
+            name: loc.name,
+            description: loc.description ?? undefined,
+            phone: loc.phone ?? undefined,
+            address: loc.address ?? undefined,
+            city: loc.city ?? undefined,
+            state: loc.state ?? undefined,
+            country: loc.country ?? undefined,
+            postal_code: loc.postal_code ?? undefined,
+            latitude: loc.latitude ?? undefined,
+            longitude: loc.longitude ?? undefined,
+          }));
+          setLocations(mapped);
+        }
+      } catch (err: any) {
+        setLoadError(err.message || "Failed to load existing business data");
+      } finally {
+        setIsLoadingExisting(false);
+      }
+    }
+
+    loadExisting();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientIdFromQuery]);
 
   function goToStep(step: WizardStep) {
     setCurrentStep(step);
@@ -154,10 +224,12 @@ export default function DashboardSetupPage() {
     if (!businessForm.country.trim()) {
       errors.fields.country = "Country is required";
     }
-    if (!businessForm.adminPassword.trim()) {
-      errors.fields.adminPassword = "Admin password is required";
-    } else if (businessForm.adminPassword.trim().length < 6) {
-      errors.fields.adminPassword = "Password must be at least 6 characters";
+    if (!isEditing) {
+      if (!businessForm.adminPassword.trim()) {
+        errors.fields.adminPassword = "Admin password is required";
+      } else if (businessForm.adminPassword.trim().length < 6) {
+        errors.fields.adminPassword = "Password must be at least 6 characters";
+      }
     }
 
     if (Object.keys(errors.fields).length > 0) {
@@ -206,48 +278,72 @@ export default function DashboardSetupPage() {
 
     setIsSubmitting(true);
     try {
-      const payload = {
-        user: {
-          name:
-            businessForm.contactName.trim() ||
-            businessForm.companyName.trim() ||
-            businessForm.email,
-          email: businessForm.email,
-          password: businessForm.adminPassword,
-        },
-        client: {
+      if (isEditing && clientIdFromQuery) {
+        const payload: UpdateClientPayload = {
           company_name: businessForm.companyName,
-          legal_name: businessForm.legalName || undefined,
-          contact_name: businessForm.contactName,
-          email: businessForm.email,
-          phone: businessForm.phone,
-          address: businessForm.address || undefined,
-          city: businessForm.city,
-          country: businessForm.country,
-          tax_id: businessForm.taxId || undefined,
+          legal_name: businessForm.legalName || null,
+          contact_name: businessForm.contactName || null,
+          email: businessForm.email || null,
+          phone: businessForm.phone || null,
+          address: businessForm.address || null,
+          city: businessForm.city || null,
+          country: businessForm.country || null,
+          tax_id: businessForm.taxId || null,
           company_registration_number:
-            businessForm.registrationNumber || undefined,
-          description: businessForm.description || undefined,
-          logo_url: businessForm.logoUrl || undefined,
-        },
-      };
+            businessForm.registrationNumber || null,
+          description: businessForm.description || null,
+          logo_url: businessForm.logoUrl || null,
+        };
 
-      const result = await createClientWithUserApi(payload);
+        await updateClientApi(clientIdFromQuery, payload);
+        setClientId(clientIdFromQuery);
+        setCurrentStep(2);
+      } else {
+        const payload = {
+          user: {
+            name:
+              businessForm.contactName.trim() ||
+              businessForm.companyName.trim() ||
+              businessForm.email,
+            email: businessForm.email,
+            password: businessForm.adminPassword,
+          },
+          client: {
+            company_name: businessForm.companyName,
+            legal_name: businessForm.legalName || undefined,
+            contact_name: businessForm.contactName,
+            email: businessForm.email,
+            phone: businessForm.phone,
+            address: businessForm.address || undefined,
+            city: businessForm.city,
+            country: businessForm.country,
+            tax_id: businessForm.taxId || undefined,
+            company_registration_number:
+              businessForm.registrationNumber || undefined,
+            description: businessForm.description || undefined,
+            logo_url: businessForm.logoUrl || undefined,
+          },
+        };
 
-      const createdClientId =
-        (result as any)?.client?.id ||
-        (result as any)?.client_id ||
-        (result as any)?.id;
+        const result = await createClientWithUserApi(payload);
 
-      if (!createdClientId) {
-        throw new Error("Client ID missing from response");
+        const createdClientId =
+          (result as any)?.client?.id ||
+          (result as any)?.client_id ||
+          (result as any)?.id;
+
+        if (!createdClientId) {
+          throw new Error("Client ID missing from response");
+        }
+
+        setClientId(createdClientId);
+        setCurrentStep(2);
       }
-
-      setClientId(createdClientId);
-      setCurrentStep(2);
     } catch (err: any) {
       setStep1Errors({
-        global: err.message || "Failed to create business",
+        global:
+          err.message ||
+          (isEditing ? "Failed to update business" : "Failed to create business"),
         fields: {},
       });
     } finally {
@@ -271,6 +367,9 @@ export default function DashboardSetupPage() {
     setIsSubmitting(true);
     try {
       for (const loc of locations) {
+        // When editing, don't recreate existing locations (those with an id)
+        if (loc.id) continue;
+
         const payload: LocationPayload = {
           ...loc,
           client_id: clientId,
@@ -282,7 +381,7 @@ export default function DashboardSetupPage() {
       router.push("/dashboard");
     } catch (err: any) {
       setStep2Errors({
-        global: err.message || "Failed to create locations",
+        global: err.message || "Failed to save locations",
         fields: {},
       });
     } finally {
@@ -295,11 +394,19 @@ export default function DashboardSetupPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold text-text-primary">
-          Add New Dashboard
+          {isEditing ? "Edit Business" : "Add New Dashboard"}
         </h1>
         <p className="mt-1 text-sm text-text-secondary">
           Step {currentStep} of 2 — Set up business information and locations.
         </p>
+        {isLoadingExisting && (
+          <p className="mt-1 text-sm text-text-secondary">
+            Loading existing business data...
+          </p>
+        )}
+        {loadError && (
+          <p className="mt-1 text-sm text-error">{loadError}</p>
+        )}
       </div>
 
       {/* Stepper */}
@@ -398,16 +505,18 @@ export default function DashboardSetupPage() {
                 }
                 error={step1Errors.fields.phone ?? undefined}
               />
-              <Input
-                label="Admin password *"
-                type="password"
-                placeholder="Set an admin password for this business"
-                value={businessForm.adminPassword}
-                onChange={(e) =>
-                  handleBusinessChange("adminPassword", e.target.value)
-                }
-                error={step1Errors.fields.adminPassword ?? undefined}
-              />
+              {!isEditing && (
+                <Input
+                  label="Admin password *"
+                  type="password"
+                  placeholder="Set an admin password for this business"
+                  value={businessForm.adminPassword}
+                  onChange={(e) =>
+                    handleBusinessChange("adminPassword", e.target.value)
+                  }
+                  error={step1Errors.fields.adminPassword ?? undefined}
+                />
+              )}
               <Input
                 label="Address"
                 placeholder="Street and number"
@@ -475,7 +584,11 @@ export default function DashboardSetupPage() {
                 Cancel
               </Button>
               <Button onClick={handleSubmitStep1} disabled={isSubmitting}>
-                {isSubmitting ? "Creating business..." : "Save & continue"}
+                {isSubmitting
+                  ? isEditing
+                    ? "Saving changes..."
+                    : "Creating business..."
+                  : "Save & continue"}
               </Button>
             </div>
           </CardContent>

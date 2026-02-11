@@ -333,8 +333,20 @@ export interface ClientSummary {
   facilities_count?: number;
 }
 
+export interface ClientDetail extends ClientSummary {
+  address?: string | null;
+  tax_id?: string | null;
+  company_registration_number?: string | null;
+  description?: string | null;
+  commission_rate?: number | null;
+}
+
 export async function getClientsApi() {
   return apiFetch<ClientSummary[]>("/clients");
+}
+
+export async function getClientByIdApi(id: string) {
+  return apiFetch<ClientDetail>(`/clients/${id}`);
 }
 
 export interface UpdateClientPayload {
