@@ -82,14 +82,16 @@ export default function DashboardSetupPage() {
   useEffect(() => {
     if (!clientIdFromQuery) return;
 
+    const id = clientIdFromQuery as string;
+
     setIsEditing(true);
     setIsLoadingExisting(true);
     setLoadError(null);
 
     async function loadExisting() {
       try {
-        const client: ClientDetail = await getClientByIdApi(clientIdFromQuery);
-        const clientLocations = await getLocationsApi(clientIdFromQuery);
+        const client: ClientDetail = await getClientByIdApi(id);
+        const clientLocations = await getLocationsApi(id);
 
         setClientId(client.id);
 
