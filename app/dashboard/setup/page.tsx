@@ -50,11 +50,16 @@ export default function DashboardSetupPage() {
     phone: "",
     address: "",
     city: "",
+    state: "",
     country: "",
+    postalCode: "",
     taxId: "",
     registrationNumber: "",
     description: "",
     logoUrl: "",
+    coverImageUrl: "",
+    latitude: "",
+    longitude: "",
     adminPassword: "",
   });
   const [step1Errors, setStep1Errors] = useState<StepErrorState>(
@@ -99,16 +104,21 @@ export default function DashboardSetupPage() {
           ...prev,
           companyName: client.company_name || "",
           legalName: (client as any).legal_name || "",
-          contactName: client.contact_name || "",
-          email: client.email || "",
+          contactName: client.contact_name || client.user?.name || "",
+          email: client.email || client.user?.email || "",
           phone: client.phone || "",
           address: client.address || "",
           city: client.city || "",
+          state: client.state || "",
           country: client.country || "",
+          postalCode: client.postal_code || "",
           taxId: client.tax_id || "",
           registrationNumber: client.company_registration_number || "",
           description: client.description || "",
           logoUrl: client.logo_url || "",
+          coverImageUrl: client.cover_image_url || "",
+          latitude: client.latitude != null ? String(client.latitude) : "",
+          longitude: client.longitude != null ? String(client.longitude) : "",
           adminPassword: "",
         }));
 
@@ -169,7 +179,18 @@ export default function DashboardSetupPage() {
                 field === "latitude" || field === "longitude"
                   ? value === ""
                     ? undefined
-                    : Number(value)
+                    : (() => {
+                        const num = Number(value);
+                        if (isNaN(num)) return undefined;
+                        // Validate ranges
+                        if (field === "latitude" && (num < -90 || num > 90)) {
+                          return undefined; // Invalid, but let validation catch it
+                        }
+                        if (field === "longitude" && (num < -180 || num > 180)) {
+                          return undefined; // Invalid, but let validation catch it
+                        }
+                        return num;
+                      })()
                   : value,
             }
           : loc
@@ -226,6 +247,18 @@ export default function DashboardSetupPage() {
     if (!businessForm.country.trim()) {
       errors.fields.country = "Country is required";
     }
+    if (businessForm.latitude && businessForm.latitude.trim()) {
+      const lat = Number(businessForm.latitude);
+      if (isNaN(lat) || lat < -90 || lat > 90) {
+        errors.fields.latitude = "Latitude must be between -90 and 90";
+      }
+    }
+    if (businessForm.longitude && businessForm.longitude.trim()) {
+      const lng = Number(businessForm.longitude);
+      if (isNaN(lng) || lng < -180 || lng > 180) {
+        errors.fields.longitude = "Longitude must be between -180 and 180";
+      }
+    }
     if (!isEditing) {
       if (!businessForm.adminPassword.trim()) {
         errors.fields.adminPassword = "Admin password is required";
@@ -261,6 +294,12 @@ export default function DashboardSetupPage() {
       if (!loc.country?.trim()) {
         errors.fields[`${index}.country`] = "Country is required";
       }
+      if (loc.latitude != null && (loc.latitude < -90 || loc.latitude > 90)) {
+        errors.fields[`${index}.latitude`] = "Latitude must be between -90 and 90";
+      }
+      if (loc.longitude != null && (loc.longitude < -180 || loc.longitude > 180)) {
+        errors.fields[`${index}.longitude`] = "Longitude must be between -180 and 180";
+      }
     });
 
     if (Object.keys(errors.fields).length > 0 || errors.global) {
@@ -289,12 +328,17 @@ export default function DashboardSetupPage() {
           phone: businessForm.phone || null,
           address: businessForm.address || null,
           city: businessForm.city || null,
+          state: businessForm.state || null,
           country: businessForm.country || null,
+          postal_code: businessForm.postalCode || null,
           tax_id: businessForm.taxId || null,
           company_registration_number:
             businessForm.registrationNumber || null,
           description: businessForm.description || null,
           logo_url: businessForm.logoUrl || null,
+          cover_image_url: businessForm.coverImageUrl || null,
+          latitude: businessForm.latitude ? Number(businessForm.latitude) : null,
+          longitude: businessForm.longitude ? Number(businessForm.longitude) : null,
         };
 
         await updateClientApi(clientIdFromQuery, payload);
@@ -318,18 +362,25 @@ export default function DashboardSetupPage() {
             phone: businessForm.phone,
             address: businessForm.address || undefined,
             city: businessForm.city,
+            state: businessForm.state || undefined,
             country: businessForm.country,
+            postal_code: businessForm.postalCode || undefined,
             tax_id: businessForm.taxId || undefined,
             company_registration_number:
               businessForm.registrationNumber || undefined,
             description: businessForm.description || undefined,
             logo_url: businessForm.logoUrl || undefined,
+            cover_image_url: businessForm.coverImageUrl || undefined,
+            latitude: businessForm.latitude ? Number(businessForm.latitude) : undefined,
+            longitude: businessForm.longitude ? Number(businessForm.longitude) : undefined,
           },
         };
 
         const result = await createClientWithUserApi(payload);
 
+        // Use user.id instead of client.id because locations.client_id references users.id
         const createdClientId =
+          (result as any)?.user?.id ||
           (result as any)?.client?.id ||
           (result as any)?.client_id ||
           (result as any)?.id;
@@ -536,12 +587,28 @@ export default function DashboardSetupPage() {
                 error={step1Errors.fields.city ?? undefined}
               />
               <Input
+                label="State / Region"
+                placeholder="State or province"
+                value={businessForm.state}
+                onChange={(e) =>
+                  handleBusinessChange("state", e.target.value)
+                }
+              />
+              <Input
                 label="Country *"
                 value={businessForm.country}
                 onChange={(e) =>
                   handleBusinessChange("country", e.target.value)
                 }
                 error={step1Errors.fields.country ?? undefined}
+              />
+              <Input
+                label="Postal code"
+                placeholder="ZIP or postal code"
+                value={businessForm.postalCode}
+                onChange={(e) =>
+                  handleBusinessChange("postalCode", e.target.value)
+                }
               />
               <Input
                 label="Tax ID"
@@ -566,6 +633,40 @@ export default function DashboardSetupPage() {
                 onChange={(e) =>
                   handleBusinessChange("logoUrl", e.target.value)
                 }
+              />
+              <Input
+                label="Cover image URL"
+                placeholder="https://..."
+                value={businessForm.coverImageUrl}
+                onChange={(e) =>
+                  handleBusinessChange("coverImageUrl", e.target.value)
+                }
+              />
+              <Input
+                label="Latitude"
+                placeholder="Between -90 and 90"
+                type="number"
+                step="any"
+                min="-90"
+                max="90"
+                value={businessForm.latitude}
+                onChange={(e) =>
+                  handleBusinessChange("latitude", e.target.value)
+                }
+                error={step1Errors.fields.latitude ?? undefined}
+              />
+              <Input
+                label="Longitude"
+                placeholder="Between -180 and 180"
+                type="number"
+                step="any"
+                min="-180"
+                max="180"
+                value={businessForm.longitude}
+                onChange={(e) =>
+                  handleBusinessChange("longitude", e.target.value)
+                }
+                error={step1Errors.fields.longitude ?? undefined}
               />
             </div>
             <Input
@@ -696,9 +797,11 @@ export default function DashboardSetupPage() {
                     />
                     <Input
                       label="Latitude"
-                      placeholder="Optional"
+                      placeholder="Between -90 and 90"
                       type="number"
                       step="any"
+                      min="-90"
+                      max="90"
                       value={
                         typeof loc.latitude === "number"
                           ? String(loc.latitude)
@@ -707,12 +810,17 @@ export default function DashboardSetupPage() {
                       onChange={(e) =>
                         handleLocationChange(index, "latitude", e.target.value)
                       }
+                      error={
+                        step2Errors.fields[`${index}.latitude`] ?? undefined
+                      }
                     />
                     <Input
                       label="Longitude"
-                      placeholder="Optional"
+                      placeholder="Between -180 and 180"
                       type="number"
                       step="any"
+                      min="-180"
+                      max="180"
                       value={
                         typeof loc.longitude === "number"
                           ? String(loc.longitude)
@@ -724,6 +832,9 @@ export default function DashboardSetupPage() {
                           "longitude",
                           e.target.value
                         )
+                      }
+                      error={
+                        step2Errors.fields[`${index}.longitude`] ?? undefined
                       }
                     />
                   </div>

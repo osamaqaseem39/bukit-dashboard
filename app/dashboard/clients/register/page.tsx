@@ -331,7 +331,9 @@ export default function ClientOnboardingPage() {
 
       const result = await createClientWithUserApi(payload);
 
+      // Use user.id instead of client.id because locations.client_id references users.id
       const createdClientId =
+        (result as any)?.user?.id ||
         (result as any)?.client?.id ||
         (result as any)?.client_id ||
         (result as any)?.id;

@@ -335,10 +335,21 @@ export interface ClientSummary {
 
 export interface ClientDetail extends ClientSummary {
   address?: string | null;
+  state?: string | null;
+  postal_code?: string | null;
   tax_id?: string | null;
   company_registration_number?: string | null;
   description?: string | null;
+  logo_url?: string | null;
+  cover_image_url?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   commission_rate?: number | null;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 export async function getClientsApi() {
@@ -357,11 +368,16 @@ export interface UpdateClientPayload {
   phone?: string | null;
   address?: string | null;
   city?: string | null;
+  state?: string | null;
   country?: string | null;
+  postal_code?: string | null;
   tax_id?: string | null;
   company_registration_number?: string | null;
   description?: string | null;
   logo_url?: string | null;
+  cover_image_url?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export async function updateClientApi(id: string, payload: UpdateClientPayload) {
@@ -413,11 +429,16 @@ export interface CreateClientProfilePayload {
   phone: string;
   address?: string;
   city: string;
+  state?: string;
   country: string;
+  postal_code?: string;
   tax_id?: string;
   company_registration_number?: string;
   description?: string;
   logo_url?: string;
+  cover_image_url?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface CreateClientWithUserPayload {
