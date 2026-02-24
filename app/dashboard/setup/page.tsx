@@ -11,6 +11,7 @@ import {
   getClientByIdApi,
   getLocationsApi,
   updateClientApi,
+  updateUserPasswordApi,
   type ClientDetail,
   type LocationPayload,
   type UpdateClientPayload,
@@ -273,6 +274,11 @@ export default function DashboardSetupPage() {
       } else if (businessForm.adminPassword.trim().length < 6) {
         errors.fields.adminPassword = "Password must be at least 6 characters";
       }
+    } else {
+      // When editing, password is optional but if provided, must be at least 6 characters
+      if (businessForm.adminPassword.trim() && businessForm.adminPassword.trim().length < 6) {
+        errors.fields.adminPassword = "Password must be at least 6 characters";
+      }
     }
 
     if (Object.keys(errors.fields).length > 0) {
@@ -350,6 +356,16 @@ export default function DashboardSetupPage() {
         };
 
         await updateClientApi(clientIdFromQuery, payload);
+        
+        // Update password if provided
+        if (businessForm.adminPassword && businessForm.adminPassword.trim().length > 0) {
+          // Get the client to find user_id
+          const client: ClientDetail = await getClientByIdApi(clientIdFromQuery);
+          if (client.user_id) {
+            await updateUserPasswordApi(client.user_id, businessForm.adminPassword);
+          }
+        }
+        
         setClientId(clientIdFromQuery);
         setCurrentStep(2);
       } else {
@@ -576,18 +592,20 @@ export default function DashboardSetupPage() {
                 }
                 error={step1Errors.fields.phone ?? undefined}
               />
-              {!isEditing && (
-                <Input
-                  label="Admin password *"
-                  type="password"
-                  placeholder="Set an admin password for this business"
-                  value={businessForm.adminPassword}
-                  onChange={(e) =>
-                    handleBusinessChange("adminPassword", e.target.value)
-                  }
-                  error={step1Errors.fields.adminPassword ?? undefined}
-                />
-              )}
+              <Input
+                label={isEditing ? "Change password (optional)" : "Admin password *"}
+                type="password"
+                placeholder={
+                  isEditing
+                    ? "Leave blank to keep current password"
+                    : "Set an admin password for this business"
+                }
+                value={businessForm.adminPassword}
+                onChange={(e) =>
+                  handleBusinessChange("adminPassword", e.target.value)
+                }
+                error={step1Errors.fields.adminPassword ?? undefined}
+              />
               <Input
                 label="Address"
                 placeholder="Street and number"

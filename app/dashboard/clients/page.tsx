@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LayoutGrid, List, MapPin, Pencil, Eye } from "lucide-react";
+import { LayoutGrid, List, MapPin, Pencil, Eye, Copy } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -23,6 +23,8 @@ import {
   rejectClientApi,
   suspendClientApi,
   activateClientApi,
+  resetClientPasswordApi,
+  type ClientCredentials,
 } from "@/lib/api";
 
 type ViewMode = "grid" | "list";
@@ -63,6 +65,8 @@ export default function ClientsPage() {
   const [savingEdit, setSavingEdit] = useState(false);
   const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
+  const [credentialsModal, setCredentialsModal] = useState<ClientCredentials | null>(null);
+  const [credentialsLoadingId, setCredentialsLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -145,6 +149,34 @@ export default function ClientsPage() {
 
   function handleViewLocations(client: ClientSummary) {
     router.push(`/dashboard/locations?clientId=${encodeURIComponent(client.id)}`);
+  }
+
+  function copyCredentialsToClipboard(email: string, temporary_password: string) {
+    const text = `Email: ${email}\nPassword: ${temporary_password}\n\nPlease change your password after first login.`;
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(() => {});
+    }
+  }
+
+  function sendCredentialsToEmail(email: string, temporary_password: string) {
+    const subject = encodeURIComponent("Your login credentials");
+    const body = encodeURIComponent(
+      `Your login credentials:\n\nEmail: ${email}\nPassword: ${temporary_password}\n\nPlease sign in and change your password on first login.`
+    );
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+  }
+
+  async function handleCopyCredentials(client: ClientSummary) {
+    setCredentialsLoadingId(client.id);
+    setStatusError(null);
+    try {
+      const creds = await resetClientPasswordApi(client.id);
+      setCredentialsModal(creds);
+    } catch (err: any) {
+      setStatusError(err.message || "Failed to reset password");
+    } finally {
+      setCredentialsLoadingId(null);
+    }
   }
 
   async function handleChangeStatus(
@@ -352,6 +384,15 @@ export default function ClientsPage() {
                   </div>
                   <div className="flex flex-wrap gap-2 pt-2">
                     <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCopyCredentials(client)}
+                      disabled={credentialsLoadingId === client.id}
+                    >
+                      <Copy className="mr-1 h-4 w-4" />
+                      {credentialsLoadingId === client.id ? "Generating..." : "Copy credentials"}
+                    </Button>
+                    <Button
                       variant="secondary"
                       size="sm"
                       onClick={() => openEdit(client)}
@@ -501,6 +542,15 @@ export default function ClientsPage() {
                       <TableCell>{client.facilities_count ?? "—"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex flex-wrap items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCopyCredentials(client)}
+                            disabled={credentialsLoadingId === client.id}
+                          >
+                            <Copy className="mr-1 h-4 w-4" />
+                            {credentialsLoadingId === client.id ? "..." : "Credentials"}
+                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -692,6 +742,50 @@ export default function ClientsPage() {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* Copy credentials modal */}
+      <Modal
+        isOpen={!!credentialsModal}
+        onClose={() => setCredentialsModal(null)}
+        title="Client login credentials"
+        size="md"
+      >
+        {credentialsModal && (
+          <div className="space-y-4">
+            <p className="text-sm text-text-secondary">
+              A new temporary password was generated. Share these credentials with the client. They will be asked to change their password on first login.
+            </p>
+            <div className="rounded-lg border border-border bg-muted/30 p-4 font-mono text-sm">
+              <div className="grid gap-2">
+                <div>
+                  <span className="text-text-secondary">Email: </span>
+                  <span className="font-medium text-text-primary">{credentialsModal.email}</span>
+                </div>
+                <div>
+                  <span className="text-text-secondary">Password: </span>
+                  <span className="font-medium text-text-primary">{credentialsModal.temporary_password}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => copyCredentialsToClipboard(credentialsModal.email, credentialsModal.temporary_password)}
+              >
+                Copy credentials
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => sendCredentialsToEmail(credentialsModal.email, credentialsModal.temporary_password)}
+              >
+                Send to email
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

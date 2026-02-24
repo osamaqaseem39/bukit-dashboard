@@ -8,6 +8,8 @@ import {
   TrendingUp,
   DollarSign,
   Activity,
+  Briefcase,
+  ArrowRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import StatCard from "@/components/ui/StatCard";
@@ -23,21 +25,27 @@ import {
 } from "@/components/ui/Table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import Button from "@/components/ui/Button";
 import {
   getBookingsApi,
   getClientStatisticsApi,
   getGamingCentersApi,
+  getClientsApi,
   Booking,
   GamingCenter,
   ClientStatistics,
+  ClientSummary,
 } from "@/lib/api";
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const router = useRouter();
 
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [gamingCenters, setGamingCenters] = useState<GamingCenter[]>([]);
   const [clientStats, setClientStats] = useState<ClientStatistics | null>(null);
+  const [clients, setClients] = useState<ClientSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,11 +57,13 @@ export default function DashboardPage() {
         setLoading(true);
         setError(null);
 
-        const [bookingsRes, gamingRes, statsRes] = await Promise.allSettled([
+        const [bookingsRes, gamingRes, statsRes, clientsRes] = await Promise.allSettled([
           getBookingsApi(),
           getGamingCentersApi(user?.role === "client" ? user.id : undefined),
           // Only admins can access /clients/statistics
           user?.role === "admin" ? getClientStatisticsApi() : Promise.resolve(null),
+          // Only admins can access /clients
+          user?.role === "admin" ? getClientsApi() : Promise.resolve([]),
         ]);
 
         if (!isMounted) return;
@@ -66,6 +76,9 @@ export default function DashboardPage() {
         }
         if (statsRes.status === "fulfilled" && statsRes.value) {
           setClientStats(statsRes.value as ClientStatistics);
+        }
+        if (clientsRes.status === "fulfilled") {
+          setClients(clientsRes.value || []);
         }
       } catch (err) {
         if (!isMounted) return;
@@ -321,6 +334,101 @@ export default function DashboardPage() {
                 ))}
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Clients Section - Admin Only */}
+      {user?.role === "admin" && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-medium text-text-primary">
+                Businesses
+              </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/dashboard/clients")}
+              >
+                View All
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="py-8 text-center text-sm text-text-secondary">
+                Loading businesses...
+              </div>
+            ) : clients.length === 0 ? (
+              <div className="py-8 text-center text-sm text-text-secondary">
+                No businesses found.
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Business Name</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Locations</TableHead>
+                    <TableHead>Facilities</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {clients.slice(0, 5).map((client) => (
+                    <TableRow
+                      key={client.id}
+                      className="cursor-pointer hover:bg-surface"
+                      onClick={() => router.push(`/dashboard/clients`)}
+                    >
+                      <TableCell className="font-medium">
+                        {client.company_name}
+                      </TableCell>
+                      <TableCell>
+                        {client.contact_name || client.email || "—"}
+                      </TableCell>
+                      <TableCell>
+                        {[client.city, client.country]
+                          .filter(Boolean)
+                          .join(", ") || "—"}
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                            client.status === "active" ||
+                            client.status === "approved"
+                              ? "bg-success/10 text-success"
+                              : client.status === "pending"
+                              ? "bg-warning/10 text-warning"
+                              : "bg-error/10 text-error"
+                          }`}
+                        >
+                          {client.status.charAt(0).toUpperCase() +
+                            client.status.slice(1)}
+                        </span>
+                      </TableCell>
+                      <TableCell>{client.locations_count ?? 0}</TableCell>
+                      <TableCell>{client.facilities_count ?? 0}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+            {!loading && clients.length > 5 && (
+              <div className="mt-4 text-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push("/dashboard/clients")}
+                >
+                  View all {clients.length} businesses
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

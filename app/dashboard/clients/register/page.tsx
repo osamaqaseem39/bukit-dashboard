@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import Modal from "@/components/ui/Modal";
 import {
   createClientWithUserApi,
   createFacilityApi,
@@ -49,8 +50,11 @@ export default function ClientOnboardingPage() {
     registrationNumber: "",
     description: "",
     logoUrl: "",
-    adminPassword: "",
   });
+  const [credentialsModal, setCredentialsModal] = useState<{
+    email: string;
+    temporary_password: string;
+  } | null>(null);
   const [step1Errors, setStep1Errors] = useState<StepErrorState>(
     initialErrorState
   );
@@ -231,11 +235,6 @@ export default function ClientOnboardingPage() {
     if (!businessForm.country.trim()) {
       errors.fields.country = "Country is required";
     }
-    if (!businessForm.adminPassword.trim()) {
-      errors.fields.adminPassword = "Admin password is required";
-    } else if (businessForm.adminPassword.trim().length < 6) {
-      errors.fields.adminPassword = "Password must be at least 6 characters";
-    }
 
     if (Object.keys(errors.fields).length > 0) {
       errors.global = "Please fill in all required fields.";
@@ -265,11 +264,11 @@ export default function ClientOnboardingPage() {
         errors.fields[`${index}.country`] = "Country is required";
       }
       // Validate latitude range (-90 to 90)
-      if (loc.latitude !== undefined && (loc.latitude < -90 || loc.latitude > 90)) {
+      if (loc.latitude != null && (loc.latitude < -90 || loc.latitude > 90)) {
         errors.fields[`${index}.latitude`] = "Latitude must be between -90 and 90";
       }
       // Validate longitude range (-180 to 180)
-      if (loc.longitude !== undefined && (loc.longitude < -180 || loc.longitude > 180)) {
+      if (loc.longitude != null && (loc.longitude < -180 || loc.longitude > 180)) {
         errors.fields[`${index}.longitude`] = "Longitude must be between -180 and 180";
       }
     });
@@ -329,7 +328,6 @@ export default function ClientOnboardingPage() {
             businessForm.companyName.trim() ||
             businessForm.email,
           email: businessForm.email,
-          password: businessForm.adminPassword,
         },
         client: {
           company_name: businessForm.companyName,
@@ -361,6 +359,11 @@ export default function ClientOnboardingPage() {
       }
 
       setClientId(createdClientId);
+      const tempPassword = (result as any)?.temporary_password;
+      const userEmail = (result as any)?.user?.email ?? businessForm.email;
+      if (userEmail && tempPassword) {
+        setCredentialsModal({ email: userEmail, temporary_password: tempPassword });
+      }
       setCurrentStep(2);
     } catch (err: any) {
       setStep1Errors({
@@ -370,6 +373,21 @@ export default function ClientOnboardingPage() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  function copyCredentials(email: string, temporary_password: string) {
+    const text = `Email: ${email}\nPassword: ${temporary_password}\n\nPlease change your password after first login.`;
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(() => {});
+    }
+  }
+
+  function sendCredentialsEmail(email: string, temporary_password: string) {
+    const subject = encodeURIComponent("Your login credentials");
+    const body = encodeURIComponent(
+      `Your login credentials:\n\nEmail: ${email}\nPassword: ${temporary_password}\n\nPlease sign in and change your password on first login.`
+    );
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
   }
 
   async function handleSubmitStep2() {
@@ -553,16 +571,6 @@ export default function ClientOnboardingPage() {
                   handleBusinessChange("phone", e.target.value)
                 }
                 error={step1Errors.fields.phone ?? undefined}
-              />
-              <Input
-                label="Admin password *"
-                type="password"
-                placeholder="Set an admin password for this business"
-                value={businessForm.adminPassword}
-                onChange={(e) =>
-                  handleBusinessChange("adminPassword", e.target.value)
-                }
-                error={step1Errors.fields.adminPassword ?? undefined}
               />
               <Input
                 label="Address"
@@ -993,6 +1001,50 @@ export default function ClientOnboardingPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Credentials modal (after creating business) */}
+      <Modal
+        isOpen={!!credentialsModal}
+        onClose={() => setCredentialsModal(null)}
+        title="Client login credentials"
+        size="md"
+      >
+        {credentialsModal && (
+          <div className="space-y-4">
+            <p className="text-sm text-text-secondary">
+              Share these credentials with the client. They will be asked to change their password on first login.
+            </p>
+            <div className="rounded-lg border border-border bg-muted/30 p-4 font-mono text-sm">
+              <div className="grid gap-2">
+                <div>
+                  <span className="text-text-secondary">Email: </span>
+                  <span className="font-medium text-text-primary">{credentialsModal.email}</span>
+                </div>
+                <div>
+                  <span className="text-text-secondary">Password: </span>
+                  <span className="font-medium text-text-primary">{credentialsModal.temporary_password}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => copyCredentials(credentialsModal.email, credentialsModal.temporary_password)}
+              >
+                Copy credentials
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => sendCredentialsEmail(credentialsModal.email, credentialsModal.temporary_password)}
+              >
+                Send to email
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

@@ -18,6 +18,13 @@ import {
   updateUserModulesApi,
 } from "@/lib/api";
 
+function roleLabel(role: string): string {
+  return role
+    .split("_")
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
+    .join(" ");
+}
+
 const ALL_MODULES: { key: DashboardModuleKey; label: string }[] = [
   { key: "dashboard-overview", label: "Dashboard overview" },
   { key: "gaming", label: "Gaming" },
@@ -64,8 +71,10 @@ export default function UsersPage() {
   }, []);
 
   const totalUsers = users.length;
+  const superAdmins = users.filter((u) => u.role === "super_admin").length;
   const admins = users.filter((u) => u.role === "admin").length;
   const clients = users.filter((u) => u.role === "client").length;
+  const endUsers = users.filter((u) => u.role === "user").length;
 
   async function handleToggleModule(
     user: AdminUserSummary,
@@ -106,7 +115,7 @@ export default function UsersPage() {
         <div>
           <h1 className="text-2xl font-semibold text-text-primary">Users</h1>
           <p className="mt-1 text-sm text-text-secondary">
-            Manage users and configure which dashboard modules each user can access.
+            All users (super admins, admins, clients, end users) in one list. Manage modules and access.
           </p>
         </div>
         <button
@@ -122,8 +131,8 @@ export default function UsersPage() {
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-6 md:grid-cols-3">
+      {/* Stats: all user types in one list (users, clients, admins, super admins) */}
+      <div className="grid gap-6 md:grid-cols-5">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -133,6 +142,20 @@ export default function UsersPage() {
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-text-primary">
                   {loading ? "—" : totalUsers}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-text-secondary">
+                  Super Admins
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-text-primary">
+                  {loading ? "—" : superAdmins}
                 </p>
               </div>
             </div>
@@ -161,6 +184,20 @@ export default function UsersPage() {
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-text-primary">
                   {loading ? "—" : clients}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-text-secondary">
+                  End Users
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-text-primary">
+                  {loading ? "—" : endUsers}
                 </p>
               </div>
             </div>
@@ -221,9 +258,9 @@ export default function UsersPage() {
                           {user.name}
                         </TableCell>
                         <TableCell>{user.email}</TableCell>
-                        <TableCell className="capitalize">
+                        <TableCell>
                           <span className="inline-flex rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                            {user.role}
+                            {roleLabel(user.role)}
                           </span>
                         </TableCell>
                         <TableCell>
