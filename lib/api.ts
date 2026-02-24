@@ -521,7 +521,7 @@ export interface FacilityPayload {
   type: string;
   status: FacilityStatus;
   capacity?: number | null;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, any> | null;
 }
 
 export async function createFacilityApi(payload: FacilityPayload) {
