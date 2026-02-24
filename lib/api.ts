@@ -373,7 +373,7 @@ export async function getClientByUserIdApi(userId: string) {
 }
 
 export interface UpdateClientPayload {
-  company_name?: string;
+  company_name?: string | null;
   legal_name?: string | null;
   contact_name?: string | null;
   email?: string | null;
