@@ -520,7 +520,7 @@ export interface FacilityPayload {
   name: string;
   type: string;
   status: FacilityStatus;
-  capacity?: number;
+  capacity?: number | null;
   metadata?: Record<string, any>;
 }
 
