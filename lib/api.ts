@@ -341,6 +341,7 @@ export interface ClientSummary {
 }
 
 export interface ClientDetail extends ClientSummary {
+  legal_name?: string | null;
   address?: string | null;
   state?: string | null;
   postal_code?: string | null;
