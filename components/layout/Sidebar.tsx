@@ -114,8 +114,8 @@ const navItems: NavItem[] = [
     label: "Facilities",
     href: "/dashboard/facilities",
     icon: <CircleDot className="h-5 w-5" />,
-    roles: ["client"],
-    // No moduleKey yet so it's available to all client users;
+    roles: ["admin", "client"],
+    // No moduleKey yet so it's available to all admin/client users;
     // can be module-gated later when backend exposes a facilities module key.
   },
   {

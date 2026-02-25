@@ -336,11 +336,13 @@ export interface ClientSummary {
   country?: string | null;
   status: "pending" | "approved" | "rejected" | "suspended" | "active";
   logo_url?: string | null;
+  cover_image_url?: string | null;
   locations_count?: number;
   facilities_count?: number;
 }
 
 export interface ClientDetail extends ClientSummary {
+  legal_name?: string | null;
   address?: string | null;
   state?: string | null;
   postal_code?: string | null;
@@ -373,6 +375,7 @@ export async function getClientByUserIdApi(userId: string) {
 
 export interface UpdateClientPayload {
   company_name?: string | null;
+  legal_name?: string | null;
   contact_name?: string | null;
   email?: string | null;
   phone?: string | null;

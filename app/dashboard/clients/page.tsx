@@ -339,16 +339,36 @@ export default function ClientsPage() {
           )}
           {!loading &&
             filteredClients.map((client) => (
-              <Card key={client.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-text-primary">
-                        {client.company_name}
-                      </h3>
-                      <p className="mt-1 text-sm text-text-secondary">
-                        {[client.city, client.country].filter(Boolean).join(", ")}
-                      </p>
+              <Card key={client.id} className="overflow-hidden">
+                {client.cover_image_url && (
+                  <div className="h-24 w-full overflow-hidden">
+                    <img
+                      src={client.cover_image_url}
+                      alt={`${client.company_name} banner`}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                )}
+                <CardHeader className="pb-3 pt-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      {client.logo_url && (
+                        <div className="h-10 w-10 overflow-hidden rounded-full border border-border bg-muted/40">
+                          <img
+                            src={client.logo_url}
+                            alt={`${client.company_name} logo`}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <h3 className="text-lg font-semibold text-text-primary">
+                          {client.company_name}
+                        </h3>
+                        <p className="mt-1 text-sm text-text-secondary">
+                          {[client.city, client.country].filter(Boolean).join(", ")}
+                        </p>
+                      </div>
                     </div>
                     <span
                       className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${statusBadgeClasses(
@@ -519,7 +539,18 @@ export default function ClientsPage() {
                   filteredClients.map((client) => (
                     <TableRow key={client.id}>
                       <TableCell className="font-medium">
-                        {client.company_name}
+                        <div className="flex items-center gap-3">
+                          {client.logo_url && (
+                            <div className="h-8 w-8 overflow-hidden rounded-full border border-border bg-muted/40">
+                              <img
+                                src={client.logo_url}
+                                alt={`${client.company_name} logo`}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <span>{client.company_name}</span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {client.contact_name || client.email || "—"}

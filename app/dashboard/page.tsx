@@ -369,7 +369,7 @@ export default function DashboardPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Business Name</TableHead>
+                    <TableHead>Business</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead>Status</TableHead>
@@ -385,7 +385,18 @@ export default function DashboardPage() {
                       onClick={() => router.push(`/dashboard/clients`)}
                     >
                       <TableCell className="font-medium">
-                        {client.company_name}
+                        <div className="flex items-center gap-3">
+                          {client.logo_url && (
+                            <div className="h-8 w-8 overflow-hidden rounded-full border border-border bg-muted/40">
+                              <img
+                                src={client.logo_url}
+                                alt={`${client.company_name} logo`}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <span>{client.company_name}</span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {client.contact_name || client.email || "—"}
