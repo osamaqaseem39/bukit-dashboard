@@ -39,7 +39,6 @@ export default function ClientOnboardingPage() {
   // Step 1: Business information
   const [businessForm, setBusinessForm] = useState({
     companyName: "",
-    legalName: "",
     contactName: "",
     email: "",
     phone: "",
@@ -220,24 +219,11 @@ export default function ClientOnboardingPage() {
     if (!businessForm.companyName.trim()) {
       errors.fields.companyName = "Company name is required";
     }
-    if (!businessForm.contactName.trim()) {
-      errors.fields.contactName = "Contact person is required";
-    }
     if (!businessForm.email.trim()) {
       errors.fields.email = "Email is required";
     }
-    if (!businessForm.phone.trim()) {
-      errors.fields.phone = "Phone is required";
-    }
-    if (!businessForm.city.trim()) {
-      errors.fields.city = "City is required";
-    }
-    if (!businessForm.country.trim()) {
-      errors.fields.country = "Country is required";
-    }
 
     if (Object.keys(errors.fields).length > 0) {
-      errors.global = "Please fill in all required fields.";
       setStep1Errors(errors);
       return false;
     }
@@ -274,9 +260,6 @@ export default function ClientOnboardingPage() {
     });
 
     if (Object.keys(errors.fields).length > 0 || errors.global) {
-      if (!errors.global) {
-        errors.global = "Please complete the required fields for locations.";
-      }
       setStep2Errors(errors);
       return false;
     }
@@ -305,9 +288,6 @@ export default function ClientOnboardingPage() {
     });
 
     if (Object.keys(errors.fields).length > 0 || errors.global) {
-      if (!errors.global) {
-        errors.global = "Please complete the required fields for facilities.";
-      }
       setStep3Errors(errors);
       return false;
     }
@@ -331,13 +311,12 @@ export default function ClientOnboardingPage() {
         },
         client: {
           company_name: businessForm.companyName,
-          legal_name: businessForm.legalName || undefined,
-          contact_name: businessForm.contactName,
+          contact_name: businessForm.contactName || undefined,
           email: businessForm.email,
-          phone: businessForm.phone,
+          phone: businessForm.phone || undefined,
           address: businessForm.address || undefined,
-          city: businessForm.city,
-          country: businessForm.country,
+          city: businessForm.city || undefined,
+          country: businessForm.country || undefined,
           tax_id: businessForm.taxId || undefined,
           company_registration_number:
             businessForm.registrationNumber || undefined,
@@ -521,11 +500,6 @@ export default function ClientOnboardingPage() {
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
-            {step1Errors.global && (
-              <div className="rounded-md border border-red-500/40 bg-red-500/5 px-3 py-2 text-sm text-red-500">
-                {step1Errors.global}
-              </div>
-            )}
             <div className="grid gap-4 md:grid-cols-2">
               <Input
                 label="Company name *"
@@ -537,15 +511,7 @@ export default function ClientOnboardingPage() {
                 error={step1Errors.fields.companyName ?? undefined}
               />
               <Input
-                label="Legal name"
-                placeholder="Registered legal entity name"
-                value={businessForm.legalName}
-                onChange={(e) =>
-                  handleBusinessChange("legalName", e.target.value)
-                }
-              />
-              <Input
-                label="Contact person *"
+                label="Contact person"
                 placeholder="Primary contact person"
                 value={businessForm.contactName}
                 onChange={(e) =>
@@ -564,7 +530,7 @@ export default function ClientOnboardingPage() {
                 error={step1Errors.fields.email ?? undefined}
               />
               <Input
-                label="Phone *"
+                label="Phone"
                 placeholder="+1 555 123 4567"
                 value={businessForm.phone}
                 onChange={(e) =>
@@ -581,7 +547,7 @@ export default function ClientOnboardingPage() {
                 }
               />
               <Input
-                label="City *"
+                label="City"
                 value={businessForm.city}
                 onChange={(e) =>
                   handleBusinessChange("city", e.target.value)
@@ -589,7 +555,7 @@ export default function ClientOnboardingPage() {
                 error={step1Errors.fields.city ?? undefined}
               />
               <Input
-                label="Country *"
+                label="Country"
                 value={businessForm.country}
                 onChange={(e) =>
                   handleBusinessChange("country", e.target.value)
@@ -630,6 +596,12 @@ export default function ClientOnboardingPage() {
               }
             />
 
+            {step1Errors.global && (
+              <div className="rounded-md border border-red-500/40 bg-red-500/5 px-3 py-2 text-sm text-red-500">
+                {step1Errors.global}
+              </div>
+            )}
+
             <div className="mt-4 flex justify-end gap-2">
               <Button
                 variant="secondary"
@@ -657,12 +629,6 @@ export default function ClientOnboardingPage() {
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
-            {step2Errors.global && (
-              <div className="rounded-md border border-red-500/40 bg-red-500/5 px-3 py-2 text-sm text-red-500">
-                {step2Errors.global}
-              </div>
-            )}
-
             <div className="space-y-6">
               {locations.map((loc, index) => (
                 <div
@@ -782,6 +748,12 @@ export default function ClientOnboardingPage() {
               ))}
             </div>
 
+            {step2Errors.global && (
+              <div className="rounded-md border border-red-500/40 bg-red-500/5 px-3 py-2 text-sm text-red-500">
+                {step2Errors.global}
+              </div>
+            )}
+
             <div>
               <Button
                 type="button"
@@ -831,12 +803,6 @@ export default function ClientOnboardingPage() {
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
-            {step3Errors.global && (
-              <div className="rounded-md border border-red-500/40 bg-red-500/5 px-3 py-2 text-sm text-red-500">
-                {step3Errors.global}
-              </div>
-            )}
-
             <div className="space-y-6">
               {facilities.map((fac, index) => (
                 <div
@@ -965,6 +931,12 @@ export default function ClientOnboardingPage() {
                 </div>
               ))}
             </div>
+
+            {step3Errors.global && (
+              <div className="rounded-md border border-red-500/40 bg-red-500/5 px-3 py-2 text-sm text-red-500">
+                {step3Errors.global}
+              </div>
+            )}
 
             <div>
               <Button

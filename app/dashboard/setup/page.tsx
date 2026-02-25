@@ -11,6 +11,7 @@ import {
   getClientByIdApi,
   getLocationsApi,
   updateClientApi,
+  updateLocationApi,
   updateUserPasswordApi,
   type ClientDetail,
   type LocationPayload,
@@ -135,8 +136,20 @@ export default function DashboardSetupPage() {
             state: loc.state ?? undefined,
             country: loc.country ?? undefined,
             postal_code: loc.postal_code ?? undefined,
-            latitude: loc.latitude ?? undefined,
-            longitude: loc.longitude ?? undefined,
+            latitude:
+              loc.latitude != null
+                ? (() => {
+                    const num = Number(loc.latitude as any);
+                    return isNaN(num) ? undefined : num;
+                  })()
+                : undefined,
+            longitude:
+              loc.longitude != null
+                ? (() => {
+                    const num = Number(loc.longitude as any);
+                    return isNaN(num) ? undefined : num;
+                  })()
+                : undefined,
           }));
           setLocations(mapped);
         }
@@ -155,7 +168,8 @@ export default function DashboardSetupPage() {
     // When editing, prevent navigation to step 2 if business hasn't been saved yet
     if (isEditing && step === 2 && !clientId) {
       setStep1Errors({
-        global: "Please save the business information first before proceeding to locations.",
+        global:
+          "Please save the business information first before proceeding to locations.",
         fields: {},
       });
       return;
@@ -195,7 +209,10 @@ export default function DashboardSetupPage() {
                         if (field === "latitude" && (num < -90 || num > 90)) {
                           return undefined; // Invalid, but let validation catch it
                         }
-                        if (field === "longitude" && (num < -180 || num > 180)) {
+                        if (
+                          field === "longitude" &&
+                          (num < -180 || num > 180)
+                        ) {
                           return undefined; // Invalid, but let validation catch it
                         }
                         return num;
@@ -276,7 +293,10 @@ export default function DashboardSetupPage() {
       }
     } else {
       // When editing, password is optional but if provided, must be at least 6 characters
-      if (businessForm.adminPassword.trim() && businessForm.adminPassword.trim().length < 6) {
+      if (
+        businessForm.adminPassword.trim() &&
+        businessForm.adminPassword.trim().length < 6
+      ) {
         errors.fields.adminPassword = "Password must be at least 6 characters";
       }
     }
@@ -311,8 +331,12 @@ export default function DashboardSetupPage() {
       if (loc.latitude != null && (loc.latitude < -90 || loc.latitude > 90)) {
         errors.fields[`${index}.latitude`] = "Latitude must be between -90 and 90";
       }
-      if (loc.longitude != null && (loc.longitude < -180 || loc.longitude > 180)) {
-        errors.fields[`${index}.longitude`] = "Longitude must be between -180 and 180";
+      if (
+        loc.longitude != null &&
+        (loc.longitude < -180 || loc.longitude > 180)
+      ) {
+        errors.fields[`${index}.longitude`] =
+          "Longitude must be between -180 and 180";
       }
     });
 
@@ -351,21 +375,33 @@ export default function DashboardSetupPage() {
           description: businessForm.description || null,
           logo_url: businessForm.logoUrl || null,
           cover_image_url: businessForm.coverImageUrl || null,
-          latitude: businessForm.latitude ? Number(businessForm.latitude) : null,
-          longitude: businessForm.longitude ? Number(businessForm.longitude) : null,
+          latitude: businessForm.latitude
+            ? Number(businessForm.latitude)
+            : null,
+          longitude: businessForm.longitude
+            ? Number(businessForm.longitude)
+            : null,
         };
 
         await updateClientApi(clientIdFromQuery, payload);
-        
+
         // Update password if provided
-        if (businessForm.adminPassword && businessForm.adminPassword.trim().length > 0) {
+        if (
+          businessForm.adminPassword &&
+          businessForm.adminPassword.trim().length > 0
+        ) {
           // Get the client to find user_id
-          const client: ClientDetail = await getClientByIdApi(clientIdFromQuery);
-          if (client.user_id) {
-            await updateUserPasswordApi(client.user_id, businessForm.adminPassword);
+          const client: ClientDetail = await getClientByIdApi(
+            clientIdFromQuery
+          );
+          if ((client as any).user_id) {
+            await updateUserPasswordApi(
+              (client as any).user_id,
+              businessForm.adminPassword
+            );
           }
         }
-        
+
         setClientId(clientIdFromQuery);
         setCurrentStep(2);
       } else {
@@ -395,8 +431,12 @@ export default function DashboardSetupPage() {
             description: businessForm.description || undefined,
             logo_url: businessForm.logoUrl || undefined,
             cover_image_url: businessForm.coverImageUrl || undefined,
-            latitude: businessForm.latitude ? Number(businessForm.latitude) : undefined,
-            longitude: businessForm.longitude ? Number(businessForm.longitude) : undefined,
+            latitude: businessForm.latitude
+              ? Number(businessForm.latitude)
+              : undefined,
+            longitude: businessForm.longitude
+              ? Number(businessForm.longitude)
+              : undefined,
           },
         };
 
@@ -443,14 +483,16 @@ export default function DashboardSetupPage() {
     setIsSubmitting(true);
     try {
       for (const loc of locations) {
-        // When editing, don't recreate existing locations (those with an id)
-        if (loc.id) continue;
-
         const payload: LocationPayload = {
           ...loc,
           client_id: clientId,
         };
-        await createLocationApi(payload);
+
+        if (loc.id) {
+          await updateLocationApi(loc.id, payload);
+        } else {
+          await createLocationApi(payload);
+        }
       }
 
       // On success, redirect to dashboard
@@ -593,7 +635,9 @@ export default function DashboardSetupPage() {
                 error={step1Errors.fields.phone ?? undefined}
               />
               <Input
-                label={isEditing ? "Change password (optional)" : "Admin password *"}
+                label={
+                  isEditing ? "Change password (optional)" : "Admin password *"
+                }
                 type="password"
                 placeholder={
                   isEditing
@@ -810,9 +854,7 @@ export default function DashboardSetupPage() {
                       onChange={(e) =>
                         handleLocationChange(index, "city", e.target.value)
                       }
-                      error={
-                        step2Errors.fields[`${index}.city`] ?? undefined
-                      }
+                      error={step2Errors.fields[`${index}.city`] ?? undefined}
                     />
                     <Input
                       label="State / Region"
@@ -907,9 +949,7 @@ export default function DashboardSetupPage() {
                   Cancel
                 </Button>
                 <Button onClick={handleSubmitStep2} disabled={isSubmitting}>
-                  {isSubmitting
-                    ? "Saving locations..."
-                    : "Complete Setup"}
+                  {isSubmitting ? "Saving locations..." : "Complete Setup"}
                 </Button>
               </div>
             </div>
@@ -919,3 +959,4 @@ export default function DashboardSetupPage() {
     </div>
   );
 }
+
