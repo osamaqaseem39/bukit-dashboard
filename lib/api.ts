@@ -525,9 +525,15 @@ export interface FacilityPayload {
 }
 
 export async function createFacilityApi(payload: FacilityPayload) {
-  return apiFetch<any>("/facilities", {
+  if (!payload.location_id) {
+    throw new Error("location_id is required to create a facility");
+  }
+
+  const { location_id, ...body } = payload;
+
+  return apiFetch<Facility>(`/locations/${location_id}/facilities`, {
     method: "POST",
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
   });
 }
 
@@ -561,16 +567,45 @@ export interface GetFacilitiesParams {
 }
 
 export async function getFacilitiesApi(params: GetFacilitiesParams = {}) {
-  const query = new URLSearchParams();
+  // Determine which locations to load facilities for.
+  // If a specific location_id is provided, only load that location's facilities.
+  // Otherwise, load facilities for all locations the current user can see.
+  const locationIds: string[] = [];
 
-  if (params.search) query.set("search", params.search);
-  if (params.type) query.set("type", params.type);
-  if (params.location_id) query.set("location_id", params.location_id);
+  if (params.location_id) {
+    locationIds.push(params.location_id);
+  } else {
+    const locations = await getLocationsApi();
+    locationIds.push(...locations.map((loc) => loc.id));
+  }
 
-  const qs = query.toString();
-  const path = qs ? `/facilities?${qs}` : "/facilities";
+  if (locationIds.length === 0) {
+    return [];
+  }
 
-  return apiFetch<Facility[]>(path);
+  const allFacilitiesArrays = await Promise.all(
+    locationIds.map((locationId) =>
+      apiFetch<Facility[]>(`/locations/${locationId}/facilities`),
+    ),
+  );
+
+  let facilities = allFacilitiesArrays.flat();
+
+  // Optional in-memory filtering
+  if (params.search) {
+    const q = params.search.toLowerCase();
+    facilities = facilities.filter(
+      (f) =>
+        f.name.toLowerCase().includes(q) ||
+        f.type.toLowerCase().includes(q),
+    );
+  }
+
+  if (params.type) {
+    facilities = facilities.filter((f) => f.type === params.type);
+  }
+
+  return facilities;
 }
 
 export async function updateFacilityApi(
