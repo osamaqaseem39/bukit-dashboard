@@ -447,6 +447,7 @@ export async function resetClientPasswordApi(clientId: string) {
 
 export interface CreateClientProfilePayload {
   company_name: string;
+  legal_name?: string | null;
   contact_name?: string;
   email: string;
   phone?: string;

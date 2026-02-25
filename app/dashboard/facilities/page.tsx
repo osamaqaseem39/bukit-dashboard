@@ -186,18 +186,18 @@ export default function FacilitiesPage() {
       {/* Search & Filters */}
       <Card>
         <CardContent className="pt-6 space-y-4">
-          <div className="flex flex-col gap-4 md:flex-row">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end">
             <Input
               type="search"
               placeholder="Search facilities by name..."
               icon={<Search className="h-4 w-4" />}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
+              className="w-full md:flex-1"
             />
 
-            <div className="flex flex-1 flex-col gap-4 md:flex-row">
-              <div className="flex-1">
+            <div className="flex flex-col gap-4 md:flex-row md:flex-none">
+              <div className="w-full md:w-40">
                 <label className="mb-1 block text-xs font-medium text-text-secondary">
                   Type
                 </label>
@@ -215,7 +215,7 @@ export default function FacilitiesPage() {
                 </select>
               </div>
 
-              <div className="flex-1">
+              <div className="w-full md:w-48">
                 <label className="mb-1 block text-xs font-medium text-text-secondary">
                   Location
                 </label>

@@ -50,12 +50,6 @@ const navItems: NavItem[] = [
     moduleKey: "dashboard-overview",
   },
   {
-    label: "Business Setup",
-    href: "/dashboard/setup",
-    icon: <Briefcase className="h-5 w-5" />,
-    roles: ["admin"],
-  },
-  {
     label: "Businesses",
     href: "/dashboard/clients",
     icon: <Briefcase className="h-5 w-5" />,
