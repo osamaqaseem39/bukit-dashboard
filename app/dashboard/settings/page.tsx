@@ -42,7 +42,6 @@ export default function SettingsPage() {
   const [businessData, setBusinessData] = useState<Partial<ClientDetail>>({});
   const [businessForm, setBusinessForm] = useState({
     company_name: "",
-    legal_name: "",
     contact_name: "",
     email: "",
     phone: "",
@@ -94,7 +93,6 @@ export default function SettingsPage() {
         setBusinessData(client);
         setBusinessForm({
           company_name: client.company_name || "",
-          legal_name: client.legal_name || "",
           contact_name: client.contact_name || "",
           email: client.email || "",
           phone: client.phone || "",
@@ -155,7 +153,6 @@ export default function SettingsPage() {
     try {
       const payload = {
         company_name: businessForm.company_name || null,
-        legal_name: businessForm.legal_name || null,
         contact_name: businessForm.contact_name || null,
         email: businessForm.email || null,
         phone: businessForm.phone || null,
@@ -409,13 +406,6 @@ export default function SettingsPage() {
                 value={businessForm.company_name}
                 onChange={(e) =>
                   setBusinessForm({ ...businessForm, company_name: e.target.value })
-                }
-              />
-              <Input
-                label="Legal Name"
-                value={businessForm.legal_name}
-                onChange={(e) =>
-                  setBusinessForm({ ...businessForm, legal_name: e.target.value })
                 }
               />
               <Input

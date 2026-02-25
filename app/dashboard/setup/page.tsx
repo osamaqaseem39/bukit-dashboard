@@ -105,7 +105,6 @@ export default function DashboardSetupPage() {
         setBusinessForm((prev) => ({
           ...prev,
           companyName: client.company_name || "",
-          legalName: (client as any).legal_name || "",
           contactName: client.contact_name || client.user?.name || "",
           email: client.email || client.user?.email || "",
           phone: client.phone || "",
@@ -360,7 +359,6 @@ export default function DashboardSetupPage() {
       if (isEditing && clientIdFromQuery) {
         const payload: UpdateClientPayload = {
           company_name: businessForm.companyName,
-          legal_name: businessForm.legalName || null,
           contact_name: businessForm.contactName || null,
           email: businessForm.email || null,
           phone: businessForm.phone || null,
@@ -416,7 +414,6 @@ export default function DashboardSetupPage() {
           },
           client: {
             company_name: businessForm.companyName,
-            legal_name: businessForm.legalName || undefined,
             contact_name: businessForm.contactName,
             email: businessForm.email,
             phone: businessForm.phone,
