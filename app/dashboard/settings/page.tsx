@@ -65,13 +65,16 @@ export default function SettingsPage() {
   // Facilities
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [editingFacility, setEditingFacility] = useState<string | null>(null);
-  const [facilityForm, setFacilityForm] = useState<Partial<Facility>>({});
+  const [facilityForm, setFacilityForm] = useState<any>({});
   const [creatingFacilityForLocation, setCreatingFacilityForLocation] = useState<string | null>(null);
   const [newFacilityForm, setNewFacilityForm] = useState({
     name: "",
     type: "",
     status: "active" as FacilityStatus,
     capacity: undefined as number | undefined,
+    pcSpecs: "",
+    screenSizeInches: "",
+    gamesAvailable: "",
   });
 
   useEffect(() => {
@@ -221,12 +224,19 @@ export default function SettingsPage() {
 
   function startEditFacility(facility: Facility) {
     setEditingFacility(facility.id);
+    const metadata = facility.metadata || {};
     setFacilityForm({
       name: facility.name,
       type: facility.type,
       status: facility.status,
       capacity: facility.capacity || undefined,
-      metadata: facility.metadata || {},
+      metadata,
+      pcSpecs: (metadata as any).specs || "",
+      screenSizeInches:
+        (metadata as any).screen_size_inches != null
+          ? String((metadata as any).screen_size_inches)
+          : "",
+      gamesAvailable: (metadata as any).games_available || "",
     });
   }
 
@@ -245,8 +255,50 @@ export default function SettingsPage() {
     setError(null);
     setSuccess(null);
 
+    const baseMetadata = facilityForm.metadata || {};
+    const updatedMetadata: Record<string, any> = { ...baseMetadata };
+
+    const type = (facilityForm.type || facility.type) as string;
+    const pcSpecs = facilityForm.pcSpecs as string | undefined;
+    const screenSizeInches = facilityForm.screenSizeInches as string | undefined;
+    const gamesAvailable = facilityForm.gamesAvailable as string | undefined;
+
+    if (type === "gaming-pc") {
+      if (pcSpecs && pcSpecs.trim()) {
+        updatedMetadata.specs = pcSpecs.trim();
+      } else {
+        delete updatedMetadata.specs;
+      }
+    }
+
+    if (type === "ps4" || type === "ps5" || type === "xbox") {
+      if (screenSizeInches && screenSizeInches.trim()) {
+        const num = Number(screenSizeInches);
+        if (!Number.isNaN(num)) {
+          updatedMetadata.screen_size_inches = num;
+        }
+      } else {
+        delete updatedMetadata.screen_size_inches;
+      }
+
+      if (gamesAvailable && gamesAvailable.trim()) {
+        updatedMetadata.games_available = gamesAvailable.trim();
+      } else {
+        delete updatedMetadata.games_available;
+      }
+    }
+
+    const finalMetadata =
+      Object.keys(updatedMetadata).length > 0 ? updatedMetadata : undefined;
+
     try {
-      await updateFacilityApi(facility.location_id, editingFacility, facilityForm);
+      await updateFacilityApi(facility.location_id, editingFacility, {
+        name: facilityForm.name,
+        type: facilityForm.type,
+        status: facilityForm.status,
+        capacity: facilityForm.capacity,
+        metadata: finalMetadata,
+      });
       setSuccess("Facility updated successfully");
       setTimeout(() => setSuccess(null), 3000);
       await loadData();
@@ -266,6 +318,9 @@ export default function SettingsPage() {
       type: "",
       status: "active",
       capacity: undefined,
+      pcSpecs: "",
+      screenSizeInches: "",
+      gamesAvailable: "",
     });
   }
 
@@ -276,6 +331,9 @@ export default function SettingsPage() {
       type: "",
       status: "active",
       capacity: undefined,
+      pcSpecs: "",
+      screenSizeInches: "",
+      gamesAvailable: "",
     });
   }
 
@@ -291,12 +349,35 @@ export default function SettingsPage() {
     setError(null);
     setSuccess(null);
 
+    const metadata: Record<string, any> = {};
+
+    if (newFacilityForm.type === "gaming-pc" && newFacilityForm.pcSpecs) {
+      metadata.specs = newFacilityForm.pcSpecs.trim();
+    }
+
+    if (
+      newFacilityForm.type === "ps4" ||
+      newFacilityForm.type === "ps5" ||
+      newFacilityForm.type === "xbox"
+    ) {
+      if (newFacilityForm.screenSizeInches) {
+        const num = Number(newFacilityForm.screenSizeInches);
+        if (!Number.isNaN(num)) {
+          metadata.screen_size_inches = num;
+        }
+      }
+      if (newFacilityForm.gamesAvailable) {
+        metadata.games_available = newFacilityForm.gamesAvailable.trim();
+      }
+    }
+
     try {
       await createFacilityForLocationApi(creatingFacilityForLocation, {
         name: newFacilityForm.name,
         type: newFacilityForm.type,
         status: newFacilityForm.status,
         capacity: newFacilityForm.capacity,
+        metadata: Object.keys(metadata).length ? metadata : undefined,
       });
       setSuccess("Facility created successfully");
       setTimeout(() => setSuccess(null), 3000);
@@ -798,6 +879,47 @@ export default function SettingsPage() {
                                   })
                                 }
                               />
+                              {newFacilityForm.type === "gaming-pc" && (
+                                <Input
+                                  label="PC Specs"
+                                  placeholder="e.g., i7 / 16GB RAM / RTX 3060"
+                                  value={newFacilityForm.pcSpecs}
+                                  onChange={(e) =>
+                                    setNewFacilityForm({
+                                      ...newFacilityForm,
+                                      pcSpecs: e.target.value,
+                                    })
+                                  }
+                                />
+                              )}
+                              {(newFacilityForm.type === "ps4" ||
+                                newFacilityForm.type === "ps5" ||
+                                newFacilityForm.type === "xbox") && (
+                                <>
+                                  <Input
+                                    label="Screen size (inches)"
+                                    type="number"
+                                    value={newFacilityForm.screenSizeInches}
+                                    onChange={(e) =>
+                                      setNewFacilityForm({
+                                        ...newFacilityForm,
+                                        screenSizeInches: e.target.value,
+                                      })
+                                    }
+                                  />
+                                  <Input
+                                    label="Games available"
+                                    placeholder="e.g., FIFA, COD, GTA"
+                                    value={newFacilityForm.gamesAvailable}
+                                    onChange={(e) =>
+                                      setNewFacilityForm({
+                                        ...newFacilityForm,
+                                        gamesAvailable: e.target.value,
+                                      })
+                                    }
+                                  />
+                                </>
+                              )}
                               <div>
                                 <label className="block text-sm font-medium text-text-primary mb-2">
                                   Status
@@ -890,6 +1012,47 @@ export default function SettingsPage() {
                                         })
                                       }
                                     />
+                                    {facilityForm.type === "gaming-pc" && (
+                                      <Input
+                                        label="PC Specs"
+                                        placeholder="e.g., i7 / 16GB RAM / RTX 3060"
+                                        value={facilityForm.pcSpecs || ""}
+                                        onChange={(e) =>
+                                          setFacilityForm({
+                                            ...facilityForm,
+                                            pcSpecs: e.target.value,
+                                          })
+                                        }
+                                      />
+                                    )}
+                                    {(facilityForm.type === "ps4" ||
+                                      facilityForm.type === "ps5" ||
+                                      facilityForm.type === "xbox") && (
+                                      <>
+                                        <Input
+                                          label="Screen size (inches)"
+                                          type="number"
+                                          value={facilityForm.screenSizeInches || ""}
+                                          onChange={(e) =>
+                                            setFacilityForm({
+                                              ...facilityForm,
+                                              screenSizeInches: e.target.value,
+                                            })
+                                          }
+                                        />
+                                        <Input
+                                          label="Games available"
+                                          placeholder="e.g., FIFA, COD, GTA"
+                                          value={facilityForm.gamesAvailable || ""}
+                                          onChange={(e) =>
+                                            setFacilityForm({
+                                              ...facilityForm,
+                                              gamesAvailable: e.target.value,
+                                            })
+                                          }
+                                        />
+                                      </>
+                                    )}
                                     <div>
                                       <label className="block text-sm font-medium text-text-primary mb-2">
                                         Status
