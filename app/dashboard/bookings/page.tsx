@@ -106,7 +106,7 @@ export default function BookingsPage() {
         </Card>
       </div>
 
-      {/* Bookings Table */}
+      {/* Bookings Table (sample data, with walk-in indicator support ready for real API later) */}
       <Card>
         <CardHeader>
           <h2 className="text-lg font-medium text-text-primary">
@@ -120,6 +120,7 @@ export default function BookingsPage() {
                 <TableHead>Booking ID</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Facility</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Time</TableHead>
                 <TableHead>Duration</TableHead>
@@ -133,6 +134,11 @@ export default function BookingsPage() {
                   <TableCell className="font-medium">{booking.id}</TableCell>
                   <TableCell>{booking.customer}</TableCell>
                   <TableCell>{booking.facility}</TableCell>
+                  <TableCell>
+                    <span className="inline-flex rounded-full bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-500">
+                      Online
+                    </span>
+                  </TableCell>
                   <TableCell>{booking.date}</TableCell>
                   <TableCell>{booking.time}</TableCell>
                   <TableCell>{booking.duration} hrs</TableCell>
