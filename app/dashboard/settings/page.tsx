@@ -1107,7 +1107,8 @@ export default function SettingsPage() {
                                             <Button
                                               type="button"
                                               variant="ghost"
-                                              size="icon"
+                                              size="sm"
+                                              className="h-8 w-8 p-0 flex items-center justify-center rounded-full"
                                               onClick={() => {
                                                 const pcs = [...newFacilityForm.pcs];
                                                 pcs.splice(index, 1);
@@ -1395,7 +1396,8 @@ export default function SettingsPage() {
                                                     <Button
                                                       type="button"
                                                       variant="ghost"
-                                                      size="icon"
+                                                      size="sm"
+                                                      className="h-8 w-8 p-0 flex items-center justify-center rounded-full"
                                                       onClick={() => {
                                                         const pcs = [
                                                           ...(facilityForm.pcs ||
