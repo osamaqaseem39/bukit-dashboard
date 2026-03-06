@@ -277,6 +277,7 @@ export interface Location {
   postal_code?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  facility_types?: string[] | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -357,8 +358,6 @@ export interface ClientDetail extends ClientSummary {
   description?: string | null;
   logo_url?: string | null;
   cover_image_url?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
   commission_rate?: number | null;
   user?: {
     id: string;
@@ -394,8 +393,6 @@ export interface UpdateClientPayload {
   description?: string | null;
   logo_url?: string | null;
   cover_image_url?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
 }
 
 export async function updateClientApi(id: string, payload: UpdateClientPayload) {
@@ -465,8 +462,6 @@ export interface CreateClientProfilePayload {
   description?: string;
   logo_url?: string;
   cover_image_url?: string;
-  latitude?: number;
-  longitude?: number;
 }
 
 export interface CreateClientWithUserPayload {
@@ -497,6 +492,7 @@ export interface LocationPayload {
   postal_code?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  facility_types?: string[] | null;
 }
 
 export async function createLocationApi(payload: LocationPayload) {

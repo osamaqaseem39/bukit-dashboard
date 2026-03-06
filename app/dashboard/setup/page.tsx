@@ -60,8 +60,6 @@ export default function DashboardSetupPage() {
     description: "",
     logoUrl: "",
     coverImageUrl: "",
-    latitude: "",
-    longitude: "",
     adminPassword: "",
   });
   const [step1Errors, setStep1Errors] = useState<StepErrorState>(
@@ -272,18 +270,6 @@ export default function DashboardSetupPage() {
     if (!businessForm.country.trim()) {
       errors.fields.country = "Country is required";
     }
-    if (businessForm.latitude && businessForm.latitude.trim()) {
-      const lat = Number(businessForm.latitude);
-      if (isNaN(lat) || lat < -90 || lat > 90) {
-        errors.fields.latitude = "Latitude must be between -90 and 90";
-      }
-    }
-    if (businessForm.longitude && businessForm.longitude.trim()) {
-      const lng = Number(businessForm.longitude);
-      if (isNaN(lng) || lng < -180 || lng > 180) {
-        errors.fields.longitude = "Longitude must be between -180 and 180";
-      }
-    }
     if (!isEditing) {
       if (!businessForm.adminPassword.trim()) {
         errors.fields.adminPassword = "Admin password is required";
@@ -373,12 +359,6 @@ export default function DashboardSetupPage() {
           description: businessForm.description || null,
           logo_url: businessForm.logoUrl || null,
           cover_image_url: businessForm.coverImageUrl || null,
-          latitude: businessForm.latitude
-            ? Number(businessForm.latitude)
-            : null,
-          longitude: businessForm.longitude
-            ? Number(businessForm.longitude)
-            : null,
         };
 
         await updateClientApi(clientIdFromQuery, payload);
@@ -428,12 +408,6 @@ export default function DashboardSetupPage() {
             description: businessForm.description || undefined,
             logo_url: businessForm.logoUrl || undefined,
             cover_image_url: businessForm.coverImageUrl || undefined,
-            latitude: businessForm.latitude
-              ? Number(businessForm.latitude)
-              : undefined,
-            longitude: businessForm.longitude
-              ? Number(businessForm.longitude)
-              : undefined,
           },
         };
 
@@ -718,32 +692,6 @@ export default function DashboardSetupPage() {
                 onChange={(e) =>
                   handleBusinessChange("coverImageUrl", e.target.value)
                 }
-              />
-              <Input
-                label="Latitude"
-                placeholder="Between -90 and 90"
-                type="number"
-                step="any"
-                min="-90"
-                max="90"
-                value={businessForm.latitude}
-                onChange={(e) =>
-                  handleBusinessChange("latitude", e.target.value)
-                }
-                error={step1Errors.fields.latitude ?? undefined}
-              />
-              <Input
-                label="Longitude"
-                placeholder="Between -180 and 180"
-                type="number"
-                step="any"
-                min="-180"
-                max="180"
-                value={businessForm.longitude}
-                onChange={(e) =>
-                  handleBusinessChange("longitude", e.target.value)
-                }
-                error={step1Errors.fields.longitude ?? undefined}
               />
             </div>
             <Input

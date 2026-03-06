@@ -72,7 +72,15 @@ export default function SettingsPage() {
     type: "",
     status: "active" as FacilityStatus,
     capacity: undefined as number | undefined,
-    pcSpecs: "",
+    // For gaming PCs: array of individual PC specs
+    pcs: [] as {
+      label: string;
+      cpu: string;
+      gpu: string;
+      ram: string;
+      refreshRate: string;
+    }[],
+    // For consoles
     screenSizeInches: "",
     gamesAvailable: "",
   });
@@ -231,7 +239,17 @@ export default function SettingsPage() {
       status: facility.status,
       capacity: facility.capacity || undefined,
       metadata,
-      pcSpecs: (metadata as any).specs || "",
+      // Gaming PC units (if present)
+      pcs: Array.isArray((metadata as any).pcs)
+        ? (metadata as any).pcs.map((pc: any, index: number) => ({
+            label: pc.label || `PC ${index + 1}`,
+            cpu: pc.cpu || "",
+            gpu: pc.gpu || "",
+            ram: pc.ram || "",
+            refreshRate:
+              pc.refresh_rate_hz != null ? String(pc.refresh_rate_hz) : "",
+          }))
+        : [],
       screenSizeInches:
         (metadata as any).screen_size_inches != null
           ? String((metadata as any).screen_size_inches)
@@ -259,15 +277,48 @@ export default function SettingsPage() {
     const updatedMetadata: Record<string, any> = { ...baseMetadata };
 
     const type = (facilityForm.type || facility.type) as string;
-    const pcSpecs = facilityForm.pcSpecs as string | undefined;
     const screenSizeInches = facilityForm.screenSizeInches as string | undefined;
     const gamesAvailable = facilityForm.gamesAvailable as string | undefined;
 
     if (type === "gaming-pc") {
-      if (pcSpecs && pcSpecs.trim()) {
-        updatedMetadata.specs = pcSpecs.trim();
+      // Replace legacy 'specs' with structured PCs array
+      delete (updatedMetadata as any).specs;
+
+      const pcs = (facilityForm as any).pcs || [];
+      const pcsPayload = pcs
+        .map((pc: any) => {
+          const label = (pc.label || "").trim();
+          const cpu = (pc.cpu || "").trim();
+          const gpu = (pc.gpu || "").trim();
+          const ram = (pc.ram || "").trim();
+          const refreshRateStr = (pc.refreshRate || "").trim();
+          const hasAny =
+            label || cpu || gpu || ram || refreshRateStr;
+
+          if (!hasAny) {
+            return null;
+          }
+
+          const refresh_rate_hz = refreshRateStr
+            ? Number(refreshRateStr)
+            : undefined;
+
+          return {
+            label: label || undefined,
+            cpu: cpu || undefined,
+            gpu: gpu || undefined,
+            ram: ram || undefined,
+            refresh_rate_hz: !Number.isNaN(refresh_rate_hz)
+              ? refresh_rate_hz
+              : undefined,
+          };
+        })
+        .filter(Boolean);
+
+      if (pcsPayload.length) {
+        (updatedMetadata as any).pcs = pcsPayload;
       } else {
-        delete updatedMetadata.specs;
+        delete (updatedMetadata as any).pcs;
       }
     }
 
@@ -318,7 +369,15 @@ export default function SettingsPage() {
       type: "",
       status: "active",
       capacity: undefined,
-      pcSpecs: "",
+      pcs: [
+        {
+          label: "PC 1",
+          cpu: "",
+          gpu: "",
+          ram: "",
+          refreshRate: "",
+        },
+      ],
       screenSizeInches: "",
       gamesAvailable: "",
     });
@@ -331,7 +390,15 @@ export default function SettingsPage() {
       type: "",
       status: "active",
       capacity: undefined,
-      pcSpecs: "",
+      pcs: [
+        {
+          label: "PC 1",
+          cpu: "",
+          gpu: "",
+          ram: "",
+          refreshRate: "",
+        },
+      ],
       screenSizeInches: "",
       gamesAvailable: "",
     });
@@ -351,8 +418,41 @@ export default function SettingsPage() {
 
     const metadata: Record<string, any> = {};
 
-    if (newFacilityForm.type === "gaming-pc" && newFacilityForm.pcSpecs) {
-      metadata.specs = newFacilityForm.pcSpecs.trim();
+    if (newFacilityForm.type === "gaming-pc") {
+      const pcs = (newFacilityForm as any).pcs || [];
+      const pcsPayload = pcs
+        .map((pc: any) => {
+          const label = (pc.label || "").trim();
+          const cpu = (pc.cpu || "").trim();
+          const gpu = (pc.gpu || "").trim();
+          const ram = (pc.ram || "").trim();
+          const refreshRateStr = (pc.refreshRate || "").trim();
+          const hasAny =
+            label || cpu || gpu || ram || refreshRateStr;
+
+          if (!hasAny) {
+            return null;
+          }
+
+          const refresh_rate_hz = refreshRateStr
+            ? Number(refreshRateStr)
+            : undefined;
+
+          return {
+            label: label || undefined,
+            cpu: cpu || undefined,
+            gpu: gpu || undefined,
+            ram: ram || undefined,
+            refresh_rate_hz: !Number.isNaN(refresh_rate_hz)
+              ? refresh_rate_hz
+              : undefined,
+          };
+        })
+        .filter(Boolean);
+
+      if (pcsPayload.length) {
+        metadata.pcs = pcsPayload;
+      }
     }
 
     if (
@@ -871,26 +971,160 @@ export default function SettingsPage() {
                               <Input
                                 label="Capacity"
                                 type="number"
+                                min={0}
                                 value={newFacilityForm.capacity || ""}
                                 onChange={(e) =>
                                   setNewFacilityForm({
                                     ...newFacilityForm,
-                                    capacity: parseInt(e.target.value) || undefined,
+                                    capacity: Math.max(
+                                      0,
+                                      isNaN(parseInt(e.target.value))
+                                        ? 0
+                                        : parseInt(e.target.value),
+                                    ),
                                   })
                                 }
                               />
                               {newFacilityForm.type === "gaming-pc" && (
-                                <Input
-                                  label="PC Specs"
-                                  placeholder="e.g., i7 / 16GB RAM / RTX 3060"
-                                  value={newFacilityForm.pcSpecs}
-                                  onChange={(e) =>
-                                    setNewFacilityForm({
-                                      ...newFacilityForm,
-                                      pcSpecs: e.target.value,
-                                    })
-                                  }
-                                />
+                                <div className="md:col-span-2 space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-text-primary">
+                                      PC units & specs
+                                    </span>
+                                    <Button
+                                      type="button"
+                                      variant="secondary"
+                                      size="sm"
+                                      onClick={() =>
+                                        setNewFacilityForm({
+                                          ...newFacilityForm,
+                                          pcs: [
+                                            ...newFacilityForm.pcs,
+                                            {
+                                              label: `PC ${newFacilityForm.pcs.length + 1}`,
+                                              cpu: "",
+                                              gpu: "",
+                                              ram: "",
+                                              refreshRate: "",
+                                            },
+                                          ],
+                                        })
+                                      }
+                                    >
+                                      <Plus className="mr-1 h-3 w-3" />
+                                      Add PC
+                                    </Button>
+                                  </div>
+                                  <div className="space-y-2">
+                                    {newFacilityForm.pcs.map((pc, index) => (
+                                      <div
+                                        key={index}
+                                        className="grid gap-2 rounded-lg border border-border bg-white/70 p-3 md:grid-cols-5"
+                                      >
+                                        <Input
+                                          label="Label"
+                                          placeholder={`PC ${index + 1}`}
+                                          value={pc.label}
+                                          onChange={(e) => {
+                                            const pcs = [...newFacilityForm.pcs];
+                                            pcs[index] = {
+                                              ...pcs[index],
+                                              label: e.target.value,
+                                            };
+                                            setNewFacilityForm({
+                                              ...newFacilityForm,
+                                              pcs,
+                                            });
+                                          }}
+                                        />
+                                        <Input
+                                          label="CPU"
+                                          placeholder="e.g., i5 / i7"
+                                          value={pc.cpu}
+                                          onChange={(e) => {
+                                            const pcs = [...newFacilityForm.pcs];
+                                            pcs[index] = {
+                                              ...pcs[index],
+                                              cpu: e.target.value,
+                                            };
+                                            setNewFacilityForm({
+                                              ...newFacilityForm,
+                                              pcs,
+                                            });
+                                          }}
+                                        />
+                                        <Input
+                                          label="GPU"
+                                          placeholder="e.g., GTX 1660"
+                                          value={pc.gpu}
+                                          onChange={(e) => {
+                                            const pcs = [...newFacilityForm.pcs];
+                                            pcs[index] = {
+                                              ...pcs[index],
+                                              gpu: e.target.value,
+                                            };
+                                            setNewFacilityForm({
+                                              ...newFacilityForm,
+                                              pcs,
+                                            });
+                                          }}
+                                        />
+                                        <Input
+                                          label="RAM"
+                                          placeholder="e.g., 16GB"
+                                          value={pc.ram}
+                                          onChange={(e) => {
+                                            const pcs = [...newFacilityForm.pcs];
+                                            pcs[index] = {
+                                              ...pcs[index],
+                                              ram: e.target.value,
+                                            };
+                                            setNewFacilityForm({
+                                              ...newFacilityForm,
+                                              pcs,
+                                            });
+                                          }}
+                                        />
+                                        <div className="flex items-end gap-2">
+                                          <Input
+                                            label="Refresh (Hz)"
+                                            type="number"
+                                            placeholder="144"
+                                            value={pc.refreshRate}
+                                            onChange={(e) => {
+                                              const pcs = [...newFacilityForm.pcs];
+                                              pcs[index] = {
+                                                ...pcs[index],
+                                                refreshRate: e.target.value,
+                                              };
+                                              setNewFacilityForm({
+                                                ...newFacilityForm,
+                                                pcs,
+                                              });
+                                            }}
+                                          />
+                                          {newFacilityForm.pcs.length > 1 && (
+                                            <Button
+                                              type="button"
+                                              variant="ghost"
+                                              size="icon"
+                                              onClick={() => {
+                                                const pcs = [...newFacilityForm.pcs];
+                                                pcs.splice(index, 1);
+                                                setNewFacilityForm({
+                                                  ...newFacilityForm,
+                                                  pcs,
+                                                });
+                                              }}
+                                            >
+                                              <X className="h-4 w-4" />
+                                            </Button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
                               )}
                               {(newFacilityForm.type === "ps4" ||
                                 newFacilityForm.type === "ps5" ||
@@ -1004,26 +1238,185 @@ export default function SettingsPage() {
                                     <Input
                                       label="Capacity"
                                       type="number"
+                                      min={0}
                                       value={facilityForm.capacity || ""}
                                       onChange={(e) =>
                                         setFacilityForm({
                                           ...facilityForm,
-                                          capacity: parseInt(e.target.value) || undefined,
+                                          capacity: Math.max(
+                                            0,
+                                            isNaN(parseInt(e.target.value))
+                                              ? 0
+                                              : parseInt(e.target.value),
+                                          ),
                                         })
                                       }
                                     />
                                     {facilityForm.type === "gaming-pc" && (
-                                      <Input
-                                        label="PC Specs"
-                                        placeholder="e.g., i7 / 16GB RAM / RTX 3060"
-                                        value={facilityForm.pcSpecs || ""}
-                                        onChange={(e) =>
-                                          setFacilityForm({
-                                            ...facilityForm,
-                                            pcSpecs: e.target.value,
-                                          })
-                                        }
-                                      />
+                                      <div className="md:col-span-2 space-y-3">
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-sm font-medium text-text-primary">
+                                            PC units & specs
+                                          </span>
+                                          <Button
+                                            type="button"
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() =>
+                                              setFacilityForm({
+                                                ...facilityForm,
+                                                pcs: [
+                                                  ...(facilityForm.pcs || []),
+                                                  {
+                                                    label: `PC ${
+                                                      (facilityForm.pcs || [])
+                                                        .length + 1
+                                                    }`,
+                                                    cpu: "",
+                                                    gpu: "",
+                                                    ram: "",
+                                                    refreshRate: "",
+                                                  },
+                                                ],
+                                              })
+                                            }
+                                          >
+                                            <Plus className="mr-1 h-3 w-3" />
+                                            Add PC
+                                          </Button>
+                                        </div>
+                                        <div className="space-y-2">
+                                          {(facilityForm.pcs || []).map(
+                                            (pc: any, index: number) => (
+                                              <div
+                                                key={index}
+                                                className="grid gap-2 rounded-lg border border-border bg-white/70 p-3 md:grid-cols-5"
+                                              >
+                                                <Input
+                                                  label="Label"
+                                                  placeholder={`PC ${index + 1}`}
+                                                  value={pc.label || ""}
+                                                  onChange={(e) => {
+                                                    const pcs = [
+                                                      ...(facilityForm.pcs ||
+                                                        []),
+                                                    ];
+                                                    pcs[index] = {
+                                                      ...pcs[index],
+                                                      label: e.target.value,
+                                                    };
+                                                    setFacilityForm({
+                                                      ...facilityForm,
+                                                      pcs,
+                                                    });
+                                                  }}
+                                                />
+                                                <Input
+                                                  label="CPU"
+                                                  placeholder="e.g., i5 / i7"
+                                                  value={pc.cpu || ""}
+                                                  onChange={(e) => {
+                                                    const pcs = [
+                                                      ...(facilityForm.pcs ||
+                                                        []),
+                                                    ];
+                                                    pcs[index] = {
+                                                      ...pcs[index],
+                                                      cpu: e.target.value,
+                                                    };
+                                                    setFacilityForm({
+                                                      ...facilityForm,
+                                                      pcs,
+                                                    });
+                                                  }}
+                                                />
+                                                <Input
+                                                  label="GPU"
+                                                  placeholder="e.g., GTX 1660"
+                                                  value={pc.gpu || ""}
+                                                  onChange={(e) => {
+                                                    const pcs = [
+                                                      ...(facilityForm.pcs ||
+                                                        []),
+                                                    ];
+                                                    pcs[index] = {
+                                                      ...pcs[index],
+                                                      gpu: e.target.value,
+                                                    };
+                                                    setFacilityForm({
+                                                      ...facilityForm,
+                                                      pcs,
+                                                    });
+                                                  }}
+                                                />
+                                                <Input
+                                                  label="RAM"
+                                                  placeholder="e.g., 16GB"
+                                                  value={pc.ram || ""}
+                                                  onChange={(e) => {
+                                                    const pcs = [
+                                                      ...(facilityForm.pcs ||
+                                                        []),
+                                                    ];
+                                                    pcs[index] = {
+                                                      ...pcs[index],
+                                                      ram: e.target.value,
+                                                    };
+                                                    setFacilityForm({
+                                                      ...facilityForm,
+                                                      pcs,
+                                                    });
+                                                  }}
+                                                />
+                                                <div className="flex items-end gap-2">
+                                                  <Input
+                                                    label="Refresh (Hz)"
+                                                    type="number"
+                                                    placeholder="144"
+                                                    value={pc.refreshRate || ""}
+                                                    onChange={(e) => {
+                                                      const pcs = [
+                                                        ...(facilityForm.pcs ||
+                                                          []),
+                                                      ];
+                                                      pcs[index] = {
+                                                        ...pcs[index],
+                                                        refreshRate:
+                                                          e.target.value,
+                                                      };
+                                                      setFacilityForm({
+                                                        ...facilityForm,
+                                                        pcs,
+                                                      });
+                                                    }}
+                                                  />
+                                                  {(facilityForm.pcs || [])
+                                                    .length > 1 && (
+                                                    <Button
+                                                      type="button"
+                                                      variant="ghost"
+                                                      size="icon"
+                                                      onClick={() => {
+                                                        const pcs = [
+                                                          ...(facilityForm.pcs ||
+                                                            []),
+                                                        ];
+                                                        pcs.splice(index, 1);
+                                                        setFacilityForm({
+                                                          ...facilityForm,
+                                                          pcs,
+                                                        });
+                                                      }}
+                                                    >
+                                                      <X className="h-4 w-4" />
+                                                    </Button>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            ),
+                                          )}
+                                        </div>
+                                      </div>
                                     )}
                                     {(facilityForm.type === "ps4" ||
                                       facilityForm.type === "ps5" ||

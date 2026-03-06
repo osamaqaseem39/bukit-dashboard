@@ -67,8 +67,6 @@ export default function ClientOnboardingPage() {
       state: "",
       country: "",
       phone: "",
-      latitude: undefined,
-      longitude: undefined,
     },
   ]);
   const [step2Errors, setStep2Errors] = useState<StepErrorState>(
@@ -123,23 +121,7 @@ export default function ClientOnboardingPage() {
         i === index
           ? {
               ...loc,
-              [field]:
-                field === "latitude" || field === "longitude"
-                  ? value === ""
-                    ? undefined
-                    : (() => {
-                        const num = Number(value);
-                        if (isNaN(num)) return undefined;
-                        // Validate ranges
-                        if (field === "latitude" && (num < -90 || num > 90)) {
-                          return undefined; // Invalid, but let validation catch it
-                        }
-                        if (field === "longitude" && (num < -180 || num > 180)) {
-                          return undefined; // Invalid, but let validation catch it
-                        }
-                        return num;
-                      })()
-                  : value,
+              [field]: value,
             }
           : loc
       )
@@ -248,14 +230,6 @@ export default function ClientOnboardingPage() {
       }
       if (!loc.country?.trim()) {
         errors.fields[`${index}.country`] = "Country is required";
-      }
-      // Validate latitude range (-90 to 90)
-      if (loc.latitude != null && (loc.latitude < -90 || loc.latitude > 90)) {
-        errors.fields[`${index}.latitude`] = "Latitude must be between -90 and 90";
-      }
-      // Validate longitude range (-180 to 180)
-      if (loc.longitude != null && (loc.longitude < -180 || loc.longitude > 180)) {
-        errors.fields[`${index}.longitude`] = "Longitude must be between -180 and 180";
       }
     });
 
@@ -703,44 +677,6 @@ export default function ClientOnboardingPage() {
                       }
                       error={
                         step2Errors.fields[`${index}.country`] ?? undefined
-                      }
-                    />
-                    <Input
-                      label="Latitude"
-                      placeholder="Optional (-90 to 90)"
-                      type="number"
-                      step="any"
-                      value={
-                        typeof loc.latitude === "number"
-                          ? String(loc.latitude)
-                          : ""
-                      }
-                      onChange={(e) =>
-                        handleLocationChange(index, "latitude", e.target.value)
-                      }
-                      error={
-                        step2Errors.fields[`${index}.latitude`] ?? undefined
-                      }
-                    />
-                    <Input
-                      label="Longitude"
-                      placeholder="Optional (-180 to 180)"
-                      type="number"
-                      step="any"
-                      value={
-                        typeof loc.longitude === "number"
-                          ? String(loc.longitude)
-                          : ""
-                      }
-                      onChange={(e) =>
-                        handleLocationChange(
-                          index,
-                          "longitude",
-                          e.target.value
-                        )
-                      }
-                      error={
-                        step2Errors.fields[`${index}.longitude`] ?? undefined
                       }
                     />
                   </div>
