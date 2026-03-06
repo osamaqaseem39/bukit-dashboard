@@ -353,6 +353,8 @@ export interface ClientDetail extends ClientSummary {
   address?: string | null;
   state?: string | null;
   postal_code?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   tax_id?: string | null;
   company_registration_number?: string | null;
   description?: string | null;
