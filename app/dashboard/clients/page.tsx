@@ -239,7 +239,14 @@ export default function ClientsPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button
-            variant={viewMode === "grid" ? "primary" : "secondary"}
+            variant="primary"
+            size="sm"
+            onClick={() => router.push("/dashboard/clients/register")}
+          >
+            + Add business
+          </Button>
+          <Button
+            variant={viewMode === "grid" ? "secondary" : "ghost"}
             size="sm"
             onClick={() => setViewMode("grid")}
           >
@@ -247,7 +254,7 @@ export default function ClientsPage() {
             Grid
           </Button>
           <Button
-            variant={viewMode === "list" ? "primary" : "secondary"}
+            variant={viewMode === "list" ? "secondary" : "ghost"}
             size="sm"
             onClick={() => setViewMode("list")}
           >

@@ -230,30 +230,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Business setup quick action for admins */}
-      {user?.role === "admin" && (
-        <Card>
-          <CardContent className="flex flex-col items-start justify-between gap-4 py-4 sm:flex-row sm:items-center">
-            <div>
-              <p className="text-sm font-medium text-text-primary">
-                Onboard a new business
-              </p>
-              <p className="mt-1 text-sm text-text-secondary">
-                Create a business profile and its locations using the guided setup wizard.
-              </p>
-            </div>
-            <Button
-              onClick={() => router.push("/dashboard/setup")}
-              className="inline-flex items-center gap-2"
-            >
-              <Briefcase className="h-4 w-4" />
-              <span>Business setup</span>
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Charts Row */}
       {(showAnalytics || showGaming) && (
         <div className="grid gap-6 lg:grid-cols-2">
