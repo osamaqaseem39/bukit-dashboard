@@ -17,8 +17,6 @@ import {
   CircleDot,
   Table2,
   Activity,
-  Footprints,
-  Crosshair,
   Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -77,25 +75,11 @@ const navItems: NavItem[] = [
     moduleKey: "table-tennis",
   },
   {
-    label: "Cricket",
-    href: "/dashboard/cricket",
+    label: "Arena",
+    href: "/dashboard/arena",
     icon: <Activity className="h-5 w-5" />,
     roles: ["admin", "client"],
-    moduleKey: "cricket",
-  },
-  {
-    label: "Futsal Turf",
-    href: "/dashboard/futsal-turf",
-    icon: <Footprints className="h-5 w-5" />,
-    roles: ["admin", "client"],
-    moduleKey: "futsal-turf",
-  },
-  {
-    label: "Padel",
-    href: "/dashboard/padel",
-    icon: <Crosshair className="h-5 w-5" />,
-    roles: ["admin", "client"],
-    moduleKey: "padel",
+    moduleKey: "arena",
   },
   {
     label: "Locations",

@@ -19,6 +19,20 @@ import {
 } from "@/lib/api";
 import { Plus, Trash2 } from "lucide-react";
 
+const FACILITY_TYPE_LABELS: Record<string, string> = {
+  "gaming-pc": "Gaming PC",
+  vr: "VR",
+  ps4: "PS4",
+  ps5: "PS5",
+  xbox: "XBOX",
+  "snooker-table": "Snooker Table",
+  "table-tennis-table": "Table Tennis Table",
+  "futsal-field": "Futsal Field",
+  "cricket-pitch": "Cricket Pitch",
+  "padel-court": "Padel Court",
+  other: "Other",
+};
+
 type WizardStep = 1 | 2;
 
 interface StepErrorState {
@@ -77,6 +91,7 @@ export default function DashboardSetupPage() {
       phone: "",
       latitude: undefined,
       longitude: undefined,
+      facility_types: [],
     },
   ]);
   const [step2Errors, setStep2Errors] = useState<StepErrorState>(
@@ -147,6 +162,7 @@ export default function DashboardSetupPage() {
                     return isNaN(num) ? undefined : num;
                   })()
                 : undefined,
+            facility_types: (loc as any).facility_types ?? [],
           }));
           setLocations(mapped);
         }
@@ -237,8 +253,59 @@ export default function DashboardSetupPage() {
         phone: "",
         latitude: undefined,
         longitude: undefined,
+        facility_types: [],
       },
     ]);
+  }
+
+  const ARENA_CHILD_TYPES = ["futsal-field", "cricket-pitch", "padel-court"];
+
+  function handleLocationFacilityTypesChange(
+    index: number,
+    type: string,
+    checked: boolean
+  ) {
+    setLocations((prev) =>
+      prev.map((loc, i) => {
+        if (i !== index) return loc;
+        const existing = loc.facility_types ?? [];
+        let next: string[];
+
+        if (type === "arena") {
+          const hasAnyArenaChild = ARENA_CHILD_TYPES.some((t) =>
+            existing.includes(t)
+          );
+          if (checked && !hasAnyArenaChild) {
+            const updated = new Set(existing);
+            ARENA_CHILD_TYPES.forEach((t) => updated.add(t));
+            next = Array.from(updated);
+          } else if (!checked && hasAnyArenaChild) {
+            next = existing.filter((t) => !ARENA_CHILD_TYPES.includes(t));
+          } else {
+            next = existing;
+          }
+        } else {
+          if (checked) {
+            if (existing.includes(type)) {
+              next = existing;
+            } else {
+              next = [...existing, type];
+            }
+          } else {
+            next = existing.filter((t) => t !== type);
+          }
+        }
+
+        return {
+          ...loc,
+          facility_types: next,
+        };
+      })
+    );
+    setStep2Errors((prev) => ({
+      global: null,
+      fields: { ...prev.fields, [`${index}.facility_types`]: null },
+    }));
   }
 
   function removeLocation(index: number) {
@@ -860,6 +927,58 @@ export default function DashboardSetupPage() {
                         step2Errors.fields[`${index}.longitude`] ?? undefined
                       }
                     />
+                    <div className="md:col-span-2">
+                      <label className="mb-1 block text-xs font-medium text-text-secondary">
+                        Facility types at this branch
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          "gaming-pc",
+                          "vr",
+                          "ps4",
+                          "ps5",
+                          "xbox",
+                          "snooker-table",
+                          "table-tennis-table",
+                          "arena",
+                          "other",
+                        ].map((value) => {
+                          const label =
+                            value === "arena"
+                              ? "Arena (Cricket, Futsal, Padel)"
+                              : FACILITY_TYPE_LABELS[value] ?? value;
+
+                          const facilityTypesForLoc = loc.facility_types ?? [];
+                          const checked =
+                            value === "arena"
+                              ? ARENA_CHILD_TYPES.some((t) =>
+                                  facilityTypesForLoc.includes(t)
+                                )
+                              : facilityTypesForLoc.includes(value);
+
+                          return (
+                            <label
+                              key={value}
+                              className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-1 text-xs text-text-secondary cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                className="h-3 w-3"
+                                checked={checked}
+                                onChange={(e) =>
+                                  handleLocationFacilityTypesChange(
+                                    index,
+                                    value,
+                                    e.target.checked
+                                  )
+                                }
+                              />
+                              <span>{label}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}

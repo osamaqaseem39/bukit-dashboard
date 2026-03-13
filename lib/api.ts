@@ -165,6 +165,7 @@ export type DashboardModuleKey =
   | "gaming"
   | "snooker"
   | "table-tennis"
+  | "arena"
   | "cricket"
   | "futsal-turf"
   | "padel"
