@@ -258,6 +258,14 @@ export default function DashboardSetupPage() {
     ]);
   }
 
+  const GAMING_ZONE_CHILD_TYPES = [
+    "gaming-pc",
+    "vr",
+    "ps5",
+    "ps4",
+    "xbox",
+  ];
+
   const ARENA_CHILD_TYPES = ["futsal-field", "cricket-pitch", "padel-court"];
 
   function handleLocationFacilityTypesChange(
@@ -271,16 +279,18 @@ export default function DashboardSetupPage() {
         const existing = loc.facility_types ?? [];
         let next: string[];
 
-        if (type === "arena") {
-          const hasAnyArenaChild = ARENA_CHILD_TYPES.some((t) =>
-            existing.includes(t)
-          );
-          if (checked && !hasAnyArenaChild) {
+        if (type === "arena" || type === "gaming-zone") {
+          const childTypes =
+            type === "arena" ? ARENA_CHILD_TYPES : GAMING_ZONE_CHILD_TYPES;
+
+          const hasAnyChild = childTypes.some((t) => existing.includes(t));
+
+          if (checked && !hasAnyChild) {
             const updated = new Set(existing);
-            ARENA_CHILD_TYPES.forEach((t) => updated.add(t));
+            childTypes.forEach((t) => updated.add(t));
             next = Array.from(updated);
-          } else if (!checked && hasAnyArenaChild) {
-            next = existing.filter((t) => !ARENA_CHILD_TYPES.includes(t));
+          } else if (!checked && hasAnyChild) {
+            next = existing.filter((t) => !childTypes.includes(t));
           } else {
             next = existing;
           }
@@ -933,25 +943,31 @@ export default function DashboardSetupPage() {
                       </label>
                       <div className="flex flex-wrap gap-2">
                         {[
-                          "gaming-pc",
-                          "vr",
-                          "ps4",
-                          "ps5",
-                          "xbox",
+                          "gaming-zone",
+                          "arena",
                           "snooker-table",
                           "table-tennis-table",
-                          "arena",
                           "other",
                         ].map((value) => {
                           const label =
                             value === "arena"
                               ? "Arena (Cricket, Futsal, Padel)"
+                              : value === "gaming-zone"
+                              ? "Gaming Zone"
+                              : value === "snooker-table"
+                              ? "Snooker"
+                              : value === "table-tennis-table"
+                              ? "Table Tennis"
                               : FACILITY_TYPE_LABELS[value] ?? value;
 
                           const facilityTypesForLoc = loc.facility_types ?? [];
                           const checked =
                             value === "arena"
                               ? ARENA_CHILD_TYPES.some((t) =>
+                                  facilityTypesForLoc.includes(t)
+                                )
+                              : value === "gaming-zone"
+                              ? GAMING_ZONE_CHILD_TYPES.some((t) =>
                                   facilityTypesForLoc.includes(t)
                                 )
                               : facilityTypesForLoc.includes(value);
