@@ -42,6 +42,13 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
 
+  // Location manager only has access to Bookings; redirect from dashboard root
+  useEffect(() => {
+    if (user?.role === "location_manager") {
+      router.replace("/dashboard/bookings");
+    }
+  }, [user?.role, router]);
+
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [gamingCenters, setGamingCenters] = useState<GamingCenter[]>([]);
   const [clientStats, setClientStats] = useState<ClientStatistics | null>(null);

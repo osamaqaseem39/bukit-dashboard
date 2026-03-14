@@ -184,7 +184,7 @@ export interface AuthUserProfile {
   id: string;
   email: string;
   name: string;
-  role: "super_admin" | "admin" | "client" | "user";
+  role: "super_admin" | "admin" | "client" | "user" | "location_manager";
   /**
    * Optional list of dashboard modules this user is allowed to see.
    *
@@ -203,7 +203,7 @@ export interface AdminUserSummary {
   id: string;
   email: string;
   name: string;
-  role: "super_admin" | "admin" | "client" | "user";
+  role: "super_admin" | "admin" | "client" | "user" | "location_manager";
   modules?: DashboardModuleKey[] | null;
 }
 

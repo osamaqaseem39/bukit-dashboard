@@ -18,7 +18,7 @@ import {
   logoutApi,
 } from "@/lib/api";
 
-type UserRole = "admin" | "client" | "user";
+type UserRole = "admin" | "client" | "user" | "location_manager";
 
 interface User {
   id: string;

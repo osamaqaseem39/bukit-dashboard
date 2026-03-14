@@ -31,7 +31,7 @@ interface NavItem {
    * Optional roles that are allowed to see this item.
    * If omitted, the item is available to all roles (subject to modules).
    */
-  roles?: Array<"admin" | "client" | "user">;
+  roles?: Array<"admin" | "client" | "user" | "location_manager">;
   /**
    * Optional dashboard module key required for this item.
    * If provided and the logged-in user has a non-empty modules list,
@@ -107,7 +107,7 @@ const navItems: NavItem[] = [
     label: "Bookings",
     href: "/dashboard/bookings",
     icon: <Calendar className="h-5 w-5" />,
-    roles: ["admin", "client"],
+    roles: ["admin", "client", "location_manager"],
     moduleKey: "bookings",
   },
   {
@@ -218,6 +218,11 @@ export default function Sidebar() {
 
                 // Role-based restriction (still enforced)
                 if (item.roles && user && !item.roles.includes(user.role)) {
+                  return null;
+                }
+
+                // Location manager: only Bookings (add + view), no other sidebar items
+                if (user?.role === "location_manager" && item.href !== "/dashboard/bookings") {
                   return null;
                 }
 
