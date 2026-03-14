@@ -726,40 +726,6 @@ export default function SettingsPage() {
                               })
                             }
                           />
-                          <Input
-                            label="City"
-                            value={locationForm.city || ""}
-                            onChange={(e) =>
-                              setLocationForm({ ...locationForm, city: e.target.value })
-                            }
-                          />
-                          <Input
-                            label="State"
-                            value={locationForm.state || ""}
-                            onChange={(e) =>
-                              setLocationForm({ ...locationForm, state: e.target.value })
-                            }
-                          />
-                          <Input
-                            label="Country"
-                            value={locationForm.country || ""}
-                            onChange={(e) =>
-                              setLocationForm({
-                                ...locationForm,
-                                country: e.target.value,
-                              })
-                            }
-                          />
-                          <Input
-                            label="Postal Code"
-                            value={locationForm.postal_code || ""}
-                            onChange={(e) =>
-                              setLocationForm({
-                                ...locationForm,
-                                postal_code: e.target.value,
-                              })
-                            }
-                          />
                         </div>
                         <div>
                           <label className="block text-xs font-semibold uppercase tracking-wider text-text-primary mb-1.5">

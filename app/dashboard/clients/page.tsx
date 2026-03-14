@@ -750,20 +750,6 @@ export default function ClientsPage() {
               }
             />
             <Input
-              label="City"
-              value={editForm.city ?? ""}
-              onChange={(e) =>
-                setEditForm((prev) => ({ ...prev, city: e.target.value }))
-              }
-            />
-            <Input
-              label="Country"
-              value={editForm.country ?? ""}
-              onChange={(e) =>
-                setEditForm((prev) => ({ ...prev, country: e.target.value }))
-              }
-            />
-            <Input
               label="Logo URL"
               value={editForm.logo_url ?? ""}
               onChange={(e) =>

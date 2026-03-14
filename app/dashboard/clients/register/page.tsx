@@ -224,12 +224,6 @@ export default function ClientOnboardingPage() {
       if (!loc.name?.trim()) {
         errors.fields[`${index}.name`] = "Location name is required";
       }
-      if (!loc.city?.trim()) {
-        errors.fields[`${index}.city`] = "City is required";
-      }
-      if (!loc.country?.trim()) {
-        errors.fields[`${index}.country`] = "Country is required";
-      }
     });
 
     if (Object.keys(errors.fields).length > 0 || errors.global) {
@@ -511,22 +505,6 @@ export default function ClientOnboardingPage() {
                 error={step1Errors.fields.phone ?? undefined}
               />
               <Input
-                label="City"
-                value={businessForm.city}
-                onChange={(e) =>
-                  handleBusinessChange("city", e.target.value)
-                }
-                error={step1Errors.fields.city ?? undefined}
-              />
-              <Input
-                label="Country"
-                value={businessForm.country}
-                onChange={(e) =>
-                  handleBusinessChange("country", e.target.value)
-                }
-                error={step1Errors.fields.country ?? undefined}
-              />
-              <Input
                 label="Tax ID"
                 placeholder="Tax identification number"
                 value={businessForm.taxId}
@@ -640,33 +618,6 @@ export default function ClientOnboardingPage() {
                       value={loc.address || ""}
                       onChange={(e) =>
                         handleLocationChange(index, "address", e.target.value)
-                      }
-                    />
-                    <Input
-                      label="City *"
-                      value={loc.city || ""}
-                      onChange={(e) =>
-                        handleLocationChange(index, "city", e.target.value)
-                      }
-                      error={
-                        step2Errors.fields[`${index}.city`] ?? undefined
-                      }
-                    />
-                    <Input
-                      label="State / Region"
-                      value={loc.state || ""}
-                      onChange={(e) =>
-                        handleLocationChange(index, "state", e.target.value)
-                      }
-                    />
-                    <Input
-                      label="Country *"
-                      value={loc.country || ""}
-                      onChange={(e) =>
-                        handleLocationChange(index, "country", e.target.value)
-                      }
-                      error={
-                        step2Errors.fields[`${index}.country`] ?? undefined
                       }
                     />
                   </div>

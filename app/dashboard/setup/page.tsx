@@ -377,12 +377,6 @@ export default function DashboardSetupPage() {
       if (!loc.name?.trim()) {
         errors.fields[`${index}.name`] = "Location name is required";
       }
-      if (!loc.city?.trim()) {
-        errors.fields[`${index}.city`] = "City is required";
-      }
-      if (!loc.country?.trim()) {
-        errors.fields[`${index}.country`] = "Country is required";
-      }
       if (loc.latitude != null && (loc.latitude < -90 || loc.latitude > 90)) {
         errors.fields[`${index}.latitude`] = "Latitude must be between -90 and 90";
       }
@@ -813,31 +807,6 @@ export default function DashboardSetupPage() {
                       value={loc.address || ""}
                       onChange={(e) =>
                         handleLocationChange(index, "address", e.target.value)
-                      }
-                    />
-                    <Input
-                      label="City *"
-                      value={loc.city || ""}
-                      onChange={(e) =>
-                        handleLocationChange(index, "city", e.target.value)
-                      }
-                      error={step2Errors.fields[`${index}.city`] ?? undefined}
-                    />
-                    <Input
-                      label="State / Region"
-                      value={loc.state || ""}
-                      onChange={(e) =>
-                        handleLocationChange(index, "state", e.target.value)
-                      }
-                    />
-                    <Input
-                      label="Country *"
-                      value={loc.country || ""}
-                      onChange={(e) =>
-                        handleLocationChange(index, "country", e.target.value)
-                      }
-                      error={
-                        step2Errors.fields[`${index}.country`] ?? undefined
                       }
                     />
                     <Input
