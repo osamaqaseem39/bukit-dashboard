@@ -31,12 +31,87 @@ const FACILITY_TYPE_LABELS: Record<string, string> = {
   ps5: "PS5",
   xbox: "XBOX",
   "snooker-table": "Snooker Table",
+  billiard: "Billiard",
   "table-tennis-table": "Table Tennis Table",
   "futsal-field": "Futsal Field",
   "cricket-pitch": "Cricket Pitch",
   "padel-court": "Padel Court",
   other: "Other",
 };
+
+/** Facility type (category) and its specific facility options for Step 3 */
+const FACILITY_TYPE_GROUPS: {
+  category: string;
+  label: string;
+  facilities: { value: string; label: string }[];
+}[] = [
+  {
+    category: "gaming-zone",
+    label: "Gaming Zone",
+    facilities: [
+      { value: "gaming-pc", label: "PC" },
+      { value: "xbox", label: "Xbox" },
+      { value: "ps5", label: "PS5" },
+      { value: "ps4", label: "PS4" },
+      { value: "vr", label: "VR" },
+    ],
+  },
+  {
+    category: "snooker",
+    label: "Snooker",
+    facilities: [
+      { value: "snooker-table", label: "Snooker table" },
+      { value: "billiard", label: "Billiard" },
+    ],
+  },
+  {
+    category: "table-tennis",
+    label: "Table Tennis",
+    facilities: [{ value: "table-tennis-table", label: "Table tennis table" }],
+  },
+  {
+    category: "arena",
+    label: "Arena",
+    facilities: [
+      { value: "futsal-field", label: "Futsal field" },
+      { value: "cricket-pitch", label: "Cricket pitch" },
+      { value: "padel-court", label: "Padel court" },
+    ],
+  },
+  {
+    category: "other",
+    label: "Other",
+    facilities: [{ value: "other", label: "Other" }],
+  },
+];
+
+function getCategoryForType(type: string): string {
+  for (const group of FACILITY_TYPE_GROUPS) {
+    if (group.facilities.some((f) => f.value === type)) return group.category;
+  }
+  return "other";
+}
+
+function getFacilityOptionsForCategory(category: string) {
+  return FACILITY_TYPE_GROUPS.find((g) => g.category === category)?.facilities ?? FACILITY_TYPE_GROUPS[FACILITY_TYPE_GROUPS.length - 1].facilities;
+}
+
+/** Get facility options for Step 3 based on the location's facility_types (set in Step 2). Includes currentType so existing facilities still show when editing. */
+function getFacilityOptionsForLocation(
+  locationId: string,
+  locations: LocationPayload[],
+  labels: Record<string, string>,
+  currentType?: string
+): { value: string; label: string }[] {
+  const loc = locations.find((l) => l.id === locationId);
+  const types = loc?.facility_types ?? [];
+  const set = new Set(types);
+  if (currentType && currentType.trim()) set.add(currentType);
+  return Array.from(set).map((value) => ({
+    value,
+    label: labels[value] ?? value,
+  }));
+}
 
 type WizardStep = 1 | 2 | 3;
 
@@ -323,6 +398,8 @@ export default function DashboardSetupPage() {
     "xbox",
   ];
 
+  const SNOOKER_CHILD_TYPES = ["snooker-table", "billiard"];
+
   const ARENA_CHILD_TYPES = ["futsal-field", "cricket-pitch", "padel-court"];
 
   function handleLocationFacilityTypesChange(
@@ -336,9 +413,13 @@ export default function DashboardSetupPage() {
         const existing = loc.facility_types ?? [];
         let next: string[];
 
-        if (type === "arena" || type === "gaming-zone") {
+        if (type === "arena" || type === "gaming-zone" || type === "snooker") {
           const childTypes =
-            type === "arena" ? ARENA_CHILD_TYPES : GAMING_ZONE_CHILD_TYPES;
+            type === "arena"
+              ? ARENA_CHILD_TYPES
+              : type === "snooker"
+                ? SNOOKER_CHILD_TYPES
+                : GAMING_ZONE_CHILD_TYPES;
 
           const hasAnyChild = childTypes.some((t) => existing.includes(t));
 
@@ -387,19 +468,39 @@ export default function DashboardSetupPage() {
     value: string
   ) {
     setFacilities((prev) =>
-      prev.map((fac, i) =>
-        i === index
-          ? {
-              ...fac,
-              [field]:
-                field === "capacity"
-                  ? value === ""
-                    ? undefined
-                    : Number(value)
-                  : value,
-            }
-          : fac
-      )
+      prev.map((fac, i) => {
+        if (i !== index) return fac;
+        const capacityVal =
+          field === "capacity"
+            ? value === ""
+              ? undefined
+              : Number(value)
+            : undefined;
+        const next: FacilityPayload = {
+          ...fac,
+          ...(field === "capacity" && capacityVal !== undefined
+            ? { capacity: capacityVal }
+            : field === "location_id"
+              ? { location_id: value }
+              : field === "name"
+                ? { name: value }
+                : field === "type"
+                  ? { type: value }
+                  : field === "status"
+                    ? { status: value as FacilityPayload["status"] }
+                    : {}),
+        };
+        // When location changes, set type to first facility option for that location (from Step 2)
+        if (field === "location_id") {
+          const opts = getFacilityOptionsForLocation(
+            value,
+            locations,
+            FACILITY_TYPE_LABELS
+          );
+          next.type = opts[0]?.value ?? "";
+        }
+        return next;
+      })
     );
     setStep3Errors((prev) => ({
       global: null,
@@ -408,13 +509,20 @@ export default function DashboardSetupPage() {
   }
 
   function addFacility() {
+    const firstLocId = locationOptions[0]?.id ?? "";
+    const firstType =
+      getFacilityOptionsForLocation(
+        firstLocId,
+        locations,
+        FACILITY_TYPE_LABELS
+      )[0]?.value ?? "other";
     setFacilities((prev) => [
       ...prev,
       {
         name: "",
-        type: "other",
+        type: firstType,
         status: "active",
-        location_id: locationOptions[0]?.id ?? "",
+        location_id: firstLocId,
         capacity: undefined,
       },
     ]);
@@ -1099,7 +1207,7 @@ export default function DashboardSetupPage() {
                         {[
                           "gaming-zone",
                           "arena",
-                          "snooker-table",
+                          "snooker",
                           "table-tennis-table",
                           "other",
                         ].map((value) => {
@@ -1108,7 +1216,7 @@ export default function DashboardSetupPage() {
                               ? "Arena (Cricket, Futsal, Padel)"
                               : value === "gaming-zone"
                               ? "Gaming Zone"
-                              : value === "snooker-table"
+                              : value === "snooker"
                               ? "Snooker"
                               : value === "table-tennis-table"
                               ? "Table Tennis"
@@ -1122,6 +1230,10 @@ export default function DashboardSetupPage() {
                                 )
                               : value === "gaming-zone"
                               ? GAMING_ZONE_CHILD_TYPES.some((t) =>
+                                  facilityTypesForLoc.includes(t)
+                                )
+                              : value === "snooker"
+                              ? SNOOKER_CHILD_TYPES.some((t) =>
                                   facilityTypesForLoc.includes(t)
                                 )
                               : facilityTypesForLoc.includes(value);
@@ -1252,37 +1364,6 @@ export default function DashboardSetupPage() {
                         />
                         <div>
                           <label className="mb-1 block text-xs font-medium text-text-secondary">
-                            Type *
-                          </label>
-                          <select
-                            className="w-full rounded-md border border-border-primary bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary"
-                            value={fac.type}
-                            onChange={(e) =>
-                              handleFacilityChange(
-                                index,
-                                "type",
-                                e.target.value
-                              )
-                            }
-                          >
-                            <option value="gaming-pc">Gaming — PC</option>
-                            <option value="vr">Gaming — VR</option>
-                            <option value="ps5">Gaming — PS5</option>
-                            <option value="ps4">Gaming — PS4</option>
-                            <option value="xbox">Gaming — XBOX</option>
-                            <option value="snooker-table">Snooker table</option>
-                            <option value="table-tennis-table">
-                              Table tennis table
-                            </option>
-                            <option value="futsal-field">Futsal field</option>
-                            <option value="cricket-pitch">Cricket pitch</option>
-                            <option value="padel-court">Padel court</option>
-                            <option value="other">Other</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="mb-1 block text-xs font-medium text-text-secondary">
                             Location *
                           </label>
                           <select
@@ -1306,6 +1387,52 @@ export default function DashboardSetupPage() {
                           {step3Errors.fields[`${index}.location_id`] && (
                             <p className="mt-1 text-xs text-red-500">
                               {step3Errors.fields[`${index}.location_id`]}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-text-secondary">
+                            Facility *
+                          </label>
+                          <select
+                            className="w-full rounded-md border border-border-primary bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary"
+                            value={fac.type}
+                            onChange={(e) =>
+                              handleFacilityChange(
+                                index,
+                                "type",
+                                e.target.value
+                              )
+                            }
+                            disabled={!fac.location_id}
+                          >
+                            <option value="">
+                              {fac.location_id
+                                ? getFacilityOptionsForLocation(
+                                    fac.location_id,
+                                    locations,
+                                    FACILITY_TYPE_LABELS,
+                                    fac.type
+                                  ).length === 0
+                                  ? "No facility types set for this location (edit Step 2)"
+                                  : "Select facility"
+                                : "Select a location first"}
+                            </option>
+                            {getFacilityOptionsForLocation(
+                              fac.location_id,
+                              locations,
+                              FACILITY_TYPE_LABELS,
+                              fac.type
+                            ).map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                          {step3Errors.fields[`${index}.type`] && (
+                            <p className="mt-1 text-xs text-red-500">
+                              {step3Errors.fields[`${index}.type`]}
                             </p>
                           )}
                         </div>

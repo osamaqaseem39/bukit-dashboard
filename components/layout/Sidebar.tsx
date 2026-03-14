@@ -135,11 +135,21 @@ export default function Sidebar() {
   const effectiveModules = useMemo<DashboardModuleKey[] | null>(() => {
     if (!user) return null;
     if (!user.modules || user.modules.length === 0) {
-      // No explicit assignment -> fall back to role-based navigation
+      // No explicit assignment: admins see full nav; client/user see only core
       return null;
     }
     return user.modules.filter(Boolean) as DashboardModuleKey[];
   }, [user]);
+
+  // For client/user with no modules, only show core items (no Gaming, Snooker, etc.)
+  const isRestrictedNoModules =
+    user &&
+    (user.role === "client" || user.role === "user") &&
+    (!user.modules || user.modules.length === 0);
+  const CORE_MODULE_KEYS: DashboardModuleKey[] = [
+    "dashboard-overview",
+    "settings",
+  ];
 
   useEffect(() => {
     const checkDesktop = () => {
@@ -211,7 +221,15 @@ export default function Sidebar() {
                   return null;
                 }
 
-                // Module-based restriction (only when user has explicit modules)
+                // For client/user with no modules assigned: only show core (Dashboard, Settings)
+                if (
+                  isRestrictedNoModules &&
+                  (!item.moduleKey || !CORE_MODULE_KEYS.includes(item.moduleKey))
+                ) {
+                  return null;
+                }
+
+                // Module-based restriction (when user has explicit modules)
                 if (
                   effectiveModules &&
                   item.moduleKey &&

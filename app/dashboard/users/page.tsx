@@ -25,16 +25,9 @@ function roleLabel(role: string): string {
     .join(" ");
 }
 
-const ALL_MODULES: { key: DashboardModuleKey; label: string }[] = [
+// Only modules that are present and assignable in the UI
+const ASSIGNABLE_MODULES: { key: DashboardModuleKey; label: string }[] = [
   { key: "dashboard-overview", label: "Dashboard overview" },
-  { key: "gaming", label: "Gaming" },
-  { key: "snooker", label: "Snooker" },
-  { key: "table-tennis", label: "Table Tennis" },
-  { key: "arena", label: "Arena (Cricket, Futsal, Padel)" },
-  { key: "locations", label: "Locations" },
-  { key: "users", label: "Users" },
-  { key: "bookings", label: "Bookings" },
-  { key: "analytics", label: "Analytics" },
   { key: "settings", label: "Settings" },
 ];
 
@@ -281,7 +274,7 @@ export default function UsersPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-2">
-                            {ALL_MODULES.map((mod) => {
+                            {ASSIGNABLE_MODULES.map((mod) => {
                               const checked = activeModules.has(mod.key);
                               const disabled = savingUserId === user.id;
 
