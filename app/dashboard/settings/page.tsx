@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { ImageUpload } from "@/components/ui";
 import { Save, Building2, MapPin, CircleDot, Loader2, Plus, X } from "lucide-react";
 import {
   getClientByUserIdApi,
@@ -45,7 +46,6 @@ export default function SettingsPage() {
     contact_name: "",
     email: "",
     phone: "",
-    address: "",
     city: "",
     state: "",
     country: "",
@@ -107,7 +107,6 @@ export default function SettingsPage() {
           contact_name: client.contact_name || "",
           email: client.email || "",
           phone: client.phone || "",
-          address: client.address || "",
           city: client.city || "",
           state: client.state || "",
           country: client.country || "",
@@ -167,7 +166,6 @@ export default function SettingsPage() {
         contact_name: businessForm.contact_name || null,
         email: businessForm.email || null,
         phone: businessForm.phone || null,
-        address: businessForm.address || null,
         city: businessForm.city || null,
         state: businessForm.state || null,
         country: businessForm.country || null,
@@ -630,13 +628,6 @@ export default function SettingsPage() {
                 }
               />
             </div>
-            <Input
-              label="Address"
-              value={businessForm.address}
-              onChange={(e) =>
-                setBusinessForm({ ...businessForm, address: e.target.value })
-              }
-            />
             <div className="grid gap-6 md:grid-cols-3">
               <Input
                 label="City"
@@ -668,20 +659,20 @@ export default function SettingsPage() {
               }
             />
             <div className="grid gap-6 md:grid-cols-2">
-              <Input
-                label="Logo URL"
-                value={businessForm.logo_url}
-                onChange={(e) =>
-                  setBusinessForm({ ...businessForm, logo_url: e.target.value })
+              <ImageUpload
+                label="Logo"
+                value={businessForm.logo_url || undefined}
+                onChange={(url) =>
+                  setBusinessForm({ ...businessForm, logo_url: url })
                 }
               />
-              <Input
-                label="Cover Image URL"
-                value={businessForm.cover_image_url}
-                onChange={(e) =>
+              <ImageUpload
+                label="Cover image"
+                value={businessForm.cover_image_url || undefined}
+                onChange={(url) =>
                   setBusinessForm({
                     ...businessForm,
-                    cover_image_url: e.target.value,
+                    cover_image_url: url,
                   })
                 }
               />

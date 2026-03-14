@@ -42,7 +42,6 @@ export default function ClientOnboardingPage() {
     contactName: "",
     email: "",
     phone: "",
-    address: "",
     city: "",
     country: "",
     taxId: "",
@@ -288,7 +287,6 @@ export default function ClientOnboardingPage() {
           contact_name: businessForm.contactName || undefined,
           email: businessForm.email,
           phone: businessForm.phone || undefined,
-          address: businessForm.address || undefined,
           city: businessForm.city || undefined,
           country: businessForm.country || undefined,
           tax_id: businessForm.taxId || undefined,
@@ -511,14 +509,6 @@ export default function ClientOnboardingPage() {
                   handleBusinessChange("phone", e.target.value)
                 }
                 error={step1Errors.fields.phone ?? undefined}
-              />
-              <Input
-                label="Address"
-                placeholder="Street and number"
-                value={businessForm.address}
-                onChange={(e) =>
-                  handleBusinessChange("address", e.target.value)
-                }
               />
               <Input
                 label="City"

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { ImageUpload } from "@/components/ui";
 import {
   createClientWithUserApi,
   createLocationApi,
@@ -64,7 +65,6 @@ export default function DashboardSetupPage() {
     contactName: "",
     email: "",
     phone: "",
-    address: "",
     city: "",
     state: "",
     country: "",
@@ -121,7 +121,6 @@ export default function DashboardSetupPage() {
           contactName: client.contact_name || client.user?.name || "",
           email: client.email || client.user?.email || "",
           phone: client.phone || "",
-          address: client.address || "",
           city: client.city || "",
           state: client.state || "",
           country: client.country || "",
@@ -425,7 +424,6 @@ export default function DashboardSetupPage() {
           contact_name: businessForm.contactName || null,
           email: businessForm.email || null,
           phone: businessForm.phone || null,
-          address: businessForm.address || null,
           city: businessForm.city || null,
           state: businessForm.state || null,
           country: businessForm.country || null,
@@ -474,7 +472,6 @@ export default function DashboardSetupPage() {
             contact_name: businessForm.contactName,
             email: businessForm.email,
             phone: businessForm.phone,
-            address: businessForm.address || undefined,
             city: businessForm.city,
             state: businessForm.state || undefined,
             country: businessForm.country,
@@ -699,14 +696,6 @@ export default function DashboardSetupPage() {
                 error={step1Errors.fields.adminPassword ?? undefined}
               />
               <Input
-                label="Address"
-                placeholder="Street and number"
-                value={businessForm.address}
-                onChange={(e) =>
-                  handleBusinessChange("address", e.target.value)
-                }
-              />
-              <Input
                 label="City *"
                 value={businessForm.city}
                 onChange={(e) =>
@@ -754,21 +743,15 @@ export default function DashboardSetupPage() {
                   handleBusinessChange("registrationNumber", e.target.value)
                 }
               />
-              <Input
-                label="Logo URL"
-                placeholder="https://..."
-                value={businessForm.logoUrl}
-                onChange={(e) =>
-                  handleBusinessChange("logoUrl", e.target.value)
-                }
+              <ImageUpload
+                label="Logo"
+                value={businessForm.logoUrl || undefined}
+                onChange={(url) => handleBusinessChange("logoUrl", url)}
               />
-              <Input
-                label="Cover image URL"
-                placeholder="https://..."
-                value={businessForm.coverImageUrl}
-                onChange={(e) =>
-                  handleBusinessChange("coverImageUrl", e.target.value)
-                }
+              <ImageUpload
+                label="Cover image"
+                value={businessForm.coverImageUrl || undefined}
+                onChange={(url) => handleBusinessChange("coverImageUrl", url)}
               />
             </div>
             <Input
