@@ -21,11 +21,11 @@ export default function StatCard({
   iconColor = "text-primary",
 }: StatCardProps) {
   return (
-    <div className="rounded-lg border border-border bg-surface p-6 shadow-sm transition-shadow hover:shadow-md">
+    <div className="rounded-md border-2 border-gray-200 bg-surface p-6 shadow-md transition-shadow">
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-text-secondary">{title}</p>
-          <p className="mt-2 text-2xl font-semibold text-text-primary">
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">{title}</p>
+          <p className="mt-2 text-2xl font-bold tracking-tight text-text-primary">
             {value}
           </p>
           {change && (
@@ -42,7 +42,7 @@ export default function StatCard({
         </div>
         <div
           className={cn(
-            "flex h-12 w-12 items-center justify-center rounded-lg",
+            "flex h-12 w-12 items-center justify-center rounded-md",
             iconColor
           )}
         >

@@ -648,11 +648,11 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-text-primary mb-1.5">
                 Description
               </label>
               <textarea
-                className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="form-input"
                 rows={4}
                 value={businessForm.description}
                 onChange={(e) =>
@@ -762,11 +762,11 @@ export default function SettingsPage() {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-text-primary mb-2">
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-text-primary mb-1.5">
                             Description
                           </label>
                           <textarea
-                            className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                            className="form-input"
                             rows={3}
                             value={locationForm.description || ""}
                             onChange={(e) =>
@@ -1121,7 +1121,7 @@ export default function SettingsPage() {
                                   Status
                                 </label>
                                 <select
-                                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                  className="form-input"
                                   value={newFacilityForm.status}
                                   onChange={(e) =>
                                     setNewFacilityForm({
@@ -1414,7 +1414,7 @@ export default function SettingsPage() {
                                         Status
                                       </label>
                                       <select
-                                        className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                        className="form-input"
                                         value={facilityForm.status || "active"}
                                         onChange={(e) =>
                                           setFacilityForm({

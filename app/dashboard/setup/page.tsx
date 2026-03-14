@@ -614,7 +614,7 @@ export default function DashboardSetupPage() {
       {currentStep === 1 && (
         <Card>
           <CardHeader>
-            <h2 className="text-lg font-medium text-text-primary">
+            <h2 className="text-lg font-bold tracking-tight text-text-primary">
               Step 1 — Business Information
             </h2>
             <p className="mt-1 text-sm text-text-secondary">
@@ -749,7 +749,7 @@ export default function DashboardSetupPage() {
       {currentStep === 2 && (
         <Card>
           <CardHeader>
-            <h2 className="text-lg font-medium text-text-primary">
+            <h2 className="text-lg font-bold tracking-tight text-text-primary">
               Step 2 — Locations
             </h2>
             <p className="mt-1 text-sm text-text-secondary">

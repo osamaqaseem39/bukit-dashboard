@@ -76,16 +76,16 @@ const Modal: React.FC<ModalProps> = ({
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
               className={cn(
-                "relative w-full rounded-lg border border-border bg-surface shadow-lg",
+                "relative w-full rounded-md border-2 border-border bg-surface shadow-lg",
                 sizes[size]
               )}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
               {(title || showCloseButton) && (
-                <div className="flex items-center justify-between border-b border-border px-6 py-4">
+                <div className="flex items-center justify-between border-b-2 border-border px-6 py-4">
                   {title && (
-                    <h2 className="text-lg font-semibold text-text-primary">
+                    <h2 className="text-lg font-bold tracking-tight text-text-primary">
                       {title}
                     </h2>
                   )}

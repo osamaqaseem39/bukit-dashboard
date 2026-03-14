@@ -47,17 +47,17 @@ export default function ImageUpload({
   return (
     <div className="space-y-2">
       {label && (
-        <p className="text-xs font-medium uppercase tracking-wide text-text-secondary">
+        <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
           {label}
         </p>
       )}
       {previewUrl && (
         <div className="mb-2">
-          <p className="text-xs font-medium text-text-secondary mb-1">Preview</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1.5">Preview</p>
           <img
             src={previewUrl}
             alt="Preview"
-            className="h-28 w-40 rounded-lg border border-border object-cover bg-surface-elevated"
+            className="h-28 w-40 rounded-md border-2 border-border object-cover bg-surface-elevated"
             referrerPolicy="no-referrer"
           />
         </div>
