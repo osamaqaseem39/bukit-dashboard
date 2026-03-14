@@ -1,13 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
-import { uploadImageApi } from "@/lib/api";
-import Button from "./Button";
+import React, { useState, useMemo } from "react";
+import { uploadImageApi, getApiBaseUrl } from "@/lib/api";
 
 interface ImageUploadProps {
   label?: string;
   value?: string;
   onChange: (url: string) => void;
+}
+
+/** Resolve image URL to absolute so thumbnails load when backend returns e.g. /uploads/... */
+function resolveImageUrl(url: string): string {
+  if (!url) return url;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  const base = getApiBaseUrl().replace(/\/$/, "");
+  return url.startsWith("/") ? `${base}${url}` : `${base}/${url}`;
 }
 
 export default function ImageUpload({
@@ -17,6 +24,7 @@ export default function ImageUpload({
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const previewUrl = useMemo(() => (value ? resolveImageUrl(value) : null), [value]);
 
   const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>
@@ -43,13 +51,14 @@ export default function ImageUpload({
           {label}
         </p>
       )}
-      {value && (
+      {previewUrl && (
         <div className="mb-2">
-          <p className="text-xs font-medium text-text-secondary mb-1">Thumbnail</p>
+          <p className="text-xs font-medium text-text-secondary mb-1">Preview</p>
           <img
-            src={value}
+            src={previewUrl}
             alt="Preview"
-            className="h-24 w-24 rounded-md object-cover border border-border"
+            className="h-28 w-40 rounded-lg border border-border object-cover bg-surface-elevated"
+            referrerPolicy="no-referrer"
           />
         </div>
       )}

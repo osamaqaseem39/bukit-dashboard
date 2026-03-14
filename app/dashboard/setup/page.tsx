@@ -340,12 +340,6 @@ export default function DashboardSetupPage() {
     if (!businessForm.phone.trim()) {
       errors.fields.phone = "Phone is required";
     }
-    if (!businessForm.city.trim()) {
-      errors.fields.city = "City is required";
-    }
-    if (!businessForm.country.trim()) {
-      errors.fields.country = "Country is required";
-    }
     if (!isEditing) {
       if (!businessForm.adminPassword.trim()) {
         errors.fields.adminPassword = "Admin password is required";
@@ -694,38 +688,6 @@ export default function DashboardSetupPage() {
                   handleBusinessChange("adminPassword", e.target.value)
                 }
                 error={step1Errors.fields.adminPassword ?? undefined}
-              />
-              <Input
-                label="City *"
-                value={businessForm.city}
-                onChange={(e) =>
-                  handleBusinessChange("city", e.target.value)
-                }
-                error={step1Errors.fields.city ?? undefined}
-              />
-              <Input
-                label="State / Region"
-                placeholder="State or province"
-                value={businessForm.state}
-                onChange={(e) =>
-                  handleBusinessChange("state", e.target.value)
-                }
-              />
-              <Input
-                label="Country *"
-                value={businessForm.country}
-                onChange={(e) =>
-                  handleBusinessChange("country", e.target.value)
-                }
-                error={step1Errors.fields.country ?? undefined}
-              />
-              <Input
-                label="Postal code"
-                placeholder="ZIP or postal code"
-                value={businessForm.postalCode}
-                onChange={(e) =>
-                  handleBusinessChange("postalCode", e.target.value)
-                }
               />
               <Input
                 label="Tax ID"

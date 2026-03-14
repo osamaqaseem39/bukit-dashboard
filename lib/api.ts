@@ -1,6 +1,11 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 
+/** Base URL for API (e.g. for building absolute image URLs from relative paths). */
+export function getApiBaseUrl(): string {
+  return API_BASE_URL;
+}
+
 const ACCESS_TOKEN_KEY = "token";
 const REFRESH_TOKEN_KEY = "refresh_token";
 

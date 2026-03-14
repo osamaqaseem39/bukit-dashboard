@@ -628,36 +628,6 @@ export default function SettingsPage() {
                 }
               />
             </div>
-            <div className="grid gap-6 md:grid-cols-3">
-              <Input
-                label="City"
-                value={businessForm.city}
-                onChange={(e) =>
-                  setBusinessForm({ ...businessForm, city: e.target.value })
-                }
-              />
-              <Input
-                label="State / Region"
-                value={businessForm.state}
-                onChange={(e) =>
-                  setBusinessForm({ ...businessForm, state: e.target.value })
-                }
-              />
-              <Input
-                label="Country"
-                value={businessForm.country}
-                onChange={(e) =>
-                  setBusinessForm({ ...businessForm, country: e.target.value })
-                }
-              />
-            </div>
-            <Input
-              label="Postal Code"
-              value={businessForm.postal_code}
-              onChange={(e) =>
-                setBusinessForm({ ...businessForm, postal_code: e.target.value })
-              }
-            />
             <div className="grid gap-6 md:grid-cols-2">
               <ImageUpload
                 label="Logo"
