@@ -635,6 +635,7 @@ export default function SettingsPage() {
                 onChange={(url) =>
                   setBusinessForm({ ...businessForm, logo_url: url })
                 }
+                variant="logo"
               />
               <ImageUpload
                 label="Cover image"
@@ -645,6 +646,7 @@ export default function SettingsPage() {
                     cover_image_url: url,
                   })
                 }
+                variant="cover"
               />
             </div>
             <div>
