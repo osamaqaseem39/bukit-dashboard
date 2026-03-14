@@ -9,13 +9,17 @@ import { ImageUpload } from "@/components/ui";
 import {
   createClientWithUserApi,
   createLocationApi,
+  createFacilityApi,
   getClientByIdApi,
   getLocationsApi,
+  getFacilitiesApi,
   updateClientApi,
   updateLocationApi,
+  updateFacilityApi,
   updateUserPasswordApi,
   type ClientDetail,
   type LocationPayload,
+  type FacilityPayload,
   type UpdateClientPayload,
 } from "@/lib/api";
 import { Plus, Trash2 } from "lucide-react";
@@ -34,7 +38,7 @@ const FACILITY_TYPE_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-type WizardStep = 1 | 2;
+type WizardStep = 1 | 2 | 3;
 
 interface StepErrorState {
   global?: string | null;
@@ -88,6 +92,7 @@ export default function DashboardSetupPage() {
       city: "",
       state: "",
       country: "",
+      postal_code: "",
       phone: "",
       latitude: undefined,
       longitude: undefined,
@@ -96,6 +101,31 @@ export default function DashboardSetupPage() {
   ]);
   const [step2Errors, setStep2Errors] = useState<StepErrorState>(
     initialErrorState
+  );
+
+  // Step 3: Facilities
+  const [facilities, setFacilities] = useState<FacilityPayload[]>([
+    {
+      name: "",
+      type: "other",
+      status: "active",
+      location_id: "",
+      capacity: undefined,
+    },
+  ]);
+  const [step3Errors, setStep3Errors] = useState<StepErrorState>(
+    initialErrorState
+  );
+
+  const locationOptions = React.useMemo(
+    () =>
+      locations
+        .filter((loc) => loc.id)
+        .map((loc) => ({
+          id: loc.id!,
+          label: loc.name || "Unnamed location",
+        })),
+    [locations]
   );
 
   // Prefill when editing an existing business
@@ -164,6 +194,25 @@ export default function DashboardSetupPage() {
             facility_types: (loc as any).facility_types ?? [],
           }));
           setLocations(mapped);
+          // Load existing facilities for this client's locations
+          const allFacilities = await Promise.all(
+            clientLocations.map((loc) =>
+              getFacilitiesApi({ location_id: loc.id })
+            )
+          );
+          const flat = allFacilities.flat();
+          if (flat.length > 0) {
+            setFacilities(
+              flat.map((f) => ({
+                id: f.id,
+                location_id: f.location_id,
+                name: f.name,
+                type: f.type,
+                status: f.status,
+                capacity: f.capacity ?? undefined,
+              }))
+            );
+          }
         }
       } catch (err: any) {
         setLoadError(err.message || "Failed to load existing business data");
@@ -182,6 +231,14 @@ export default function DashboardSetupPage() {
       setStep1Errors({
         global:
           "Please save the business information first before proceeding to locations.",
+        fields: {},
+      });
+      return;
+    }
+    // Step 3 requires at least one location with id
+    if (step === 3 && !locations.some((loc) => loc.id)) {
+      setStep2Errors({
+        global: "Save locations first so you can add facilities.",
         fields: {},
       });
       return;
@@ -249,6 +306,7 @@ export default function DashboardSetupPage() {
         city: "",
         state: "",
         country: "",
+        postal_code: "",
         phone: "",
         latitude: undefined,
         longitude: undefined,
@@ -321,6 +379,49 @@ export default function DashboardSetupPage() {
     if (locations.length > 1) {
       setLocations((prev) => prev.filter((_, i) => i !== index));
     }
+  }
+
+  function handleFacilityChange(
+    index: number,
+    field: keyof FacilityPayload,
+    value: string
+  ) {
+    setFacilities((prev) =>
+      prev.map((fac, i) =>
+        i === index
+          ? {
+              ...fac,
+              [field]:
+                field === "capacity"
+                  ? value === ""
+                    ? undefined
+                    : Number(value)
+                  : value,
+            }
+          : fac
+      )
+    );
+    setStep3Errors((prev) => ({
+      global: null,
+      fields: { ...prev.fields, [`${index}.${field}`]: null },
+    }));
+  }
+
+  function addFacility() {
+    setFacilities((prev) => [
+      ...prev,
+      {
+        name: "",
+        type: "other",
+        status: "active",
+        location_id: locationOptions[0]?.id ?? "",
+        capacity: undefined,
+      },
+    ]);
+  }
+
+  function removeFacility(index: number) {
+    setFacilities((prev) => prev.filter((_, i) => i !== index));
   }
 
   function validateStep1(): boolean {
@@ -398,6 +499,34 @@ export default function DashboardSetupPage() {
     }
 
     setStep2Errors(initialErrorState);
+    return true;
+  }
+
+  function validateStep3(): boolean {
+    const errors: StepErrorState = { global: null, fields: {} };
+
+    const hasAtLeastOneValid = facilities.some(
+      (f) => f.name?.trim() && f.location_id?.trim()
+    );
+    if (!hasAtLeastOneValid) {
+      errors.global = "Add at least one facility with name and location.";
+    }
+
+    facilities.forEach((fac, index) => {
+      if (!fac.name?.trim()) {
+        errors.fields[`${index}.name`] = "Facility name is required";
+      }
+      if (!fac.location_id?.trim()) {
+        errors.fields[`${index}.location_id`] = "Location is required";
+      }
+    });
+
+    if (Object.keys(errors.fields).length > 0 || errors.global) {
+      setStep3Errors(errors);
+      return false;
+    }
+
+    setStep3Errors(initialErrorState);
     return true;
   }
 
@@ -528,11 +657,78 @@ export default function DashboardSetupPage() {
         }
       }
 
-      // On success, redirect to dashboard
-      router.push("/dashboard");
+      // Refetch locations so we have ids for step 3 (facilities)
+      const updatedLocations = await getLocationsApi(clientId);
+      setLocations(
+        updatedLocations.map((loc) => ({
+          id: loc.id,
+          client_id: loc.client_id,
+          name: loc.name,
+          description: loc.description ?? undefined,
+          phone: loc.phone ?? undefined,
+          address: loc.address ?? undefined,
+          city: loc.city ?? undefined,
+          state: loc.state ?? undefined,
+          country: loc.country ?? undefined,
+          postal_code: loc.postal_code ?? undefined,
+          latitude:
+            loc.latitude != null
+              ? (() => {
+                  const num = Number(loc.latitude as any);
+                  return isNaN(num) ? undefined : num;
+                })()
+              : undefined,
+          longitude:
+            loc.longitude != null
+              ? (() => {
+                  const num = Number(loc.longitude as any);
+                  return isNaN(num) ? undefined : num;
+                })()
+              : undefined,
+          facility_types: (loc as any).facility_types ?? [],
+        }))
+      );
+      setCurrentStep(3);
     } catch (err: any) {
       setStep2Errors({
         global: err.message || "Failed to save locations",
+        fields: {},
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleSubmitStep3() {
+    if (!validateStep3()) return;
+
+    setIsSubmitting(true);
+    try {
+      const toSave = facilities.filter(
+        (f) => f.name?.trim() && f.location_id?.trim()
+      );
+      for (const fac of toSave) {
+        if (fac.id) {
+          await updateFacilityApi(fac.location_id, fac.id, {
+            name: fac.name,
+            type: fac.type,
+            status: fac.status,
+            capacity: fac.capacity ?? null,
+          });
+        } else {
+          await createFacilityApi({
+            location_id: fac.location_id,
+            name: fac.name,
+            type: fac.type,
+            status: fac.status,
+            capacity: fac.capacity ?? null,
+          });
+        }
+      }
+      router.push("/dashboard");
+    } catch (err: any) {
+      setStep3Errors({
+        global: err.message || "Failed to save facilities",
         fields: {},
       });
     } finally {
@@ -548,7 +744,8 @@ export default function DashboardSetupPage() {
           {isEditing ? "Edit Business" : "Add New Dashboard"}
         </h1>
         <p className="mt-1 text-sm text-text-secondary">
-          Step {currentStep} of 2 — Set up business information and locations.
+          Step {currentStep} of 3 — Business information, locations, and
+          facilities.
         </p>
         {isLoadingExisting && (
           <p className="mt-1 text-sm text-text-secondary">
@@ -561,15 +758,20 @@ export default function DashboardSetupPage() {
       </div>
 
       {/* Stepper */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         {[
           { step: 1, label: "Business Information" },
           { step: 2, label: "Locations" },
+          { step: 3, label: "Facilities" },
         ].map((item) => {
           const isActive = currentStep === item.step;
           const isCompleted = currentStep > (item.step as number);
           // When editing, disable step 2 if business hasn't been saved
-          const isDisabled = isEditing && item.step === 2 && !clientId;
+          const isDisabledStep2 = isEditing && item.step === 2 && !clientId;
+          // Step 3 requires at least one location with id
+          const isDisabledStep3 =
+            item.step === 3 && !locations.some((loc) => loc.id);
+          const isDisabled = isDisabledStep2 || isDisabledStep3;
           return (
             <div
               key={item.step}
@@ -595,9 +797,13 @@ export default function DashboardSetupPage() {
                 {item.step === 1 &&
                   "Enter business profile and primary contact details."}
                 {item.step === 2 &&
-                  (isDisabled
+                  (isDisabledStep2
                     ? "Save business information first to proceed."
                     : "Add one or more branch locations for this business.")}
+                {item.step === 3 &&
+                  (isDisabledStep3
+                    ? "Save locations first to add facilities."
+                    : "Add facilities (courts, tables, zones) for each location.")}
               </div>
             </div>
           );
@@ -812,6 +1018,38 @@ export default function DashboardSetupPage() {
                       }
                     />
                     <Input
+                      label="City"
+                      placeholder="City"
+                      value={loc.city || ""}
+                      onChange={(e) =>
+                        handleLocationChange(index, "city", e.target.value)
+                      }
+                    />
+                    <Input
+                      label="State / Region"
+                      placeholder="State or region"
+                      value={loc.state || ""}
+                      onChange={(e) =>
+                        handleLocationChange(index, "state", e.target.value)
+                      }
+                    />
+                    <Input
+                      label="Country"
+                      placeholder="Country"
+                      value={loc.country || ""}
+                      onChange={(e) =>
+                        handleLocationChange(index, "country", e.target.value)
+                      }
+                    />
+                    <Input
+                      label="Postal code"
+                      placeholder="ZIP or postal code"
+                      value={loc.postal_code || ""}
+                      onChange={(e) =>
+                        handleLocationChange(index, "postal_code", e.target.value)
+                      }
+                    />
+                    <Input
                       label="Latitude"
                       placeholder="Between -90 and 90"
                       type="number"
@@ -945,7 +1183,208 @@ export default function DashboardSetupPage() {
                   Cancel
                 </Button>
                 <Button onClick={handleSubmitStep2} disabled={isSubmitting}>
-                  {isSubmitting ? "Saving locations..." : "Complete Setup"}
+                  {isSubmitting ? "Saving locations..." : "Save & continue"}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 3: Facilities */}
+      {currentStep === 3 && (
+        <Card>
+          <CardHeader>
+            <h2 className="text-lg font-bold tracking-tight text-text-primary">
+              Step 3 — Facilities
+            </h2>
+            <p className="mt-1 text-sm text-text-secondary">
+              Add or edit facilities (courts, tables, zones, etc.) for each
+              location. You can add more later from the sport-specific modules.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {step3Errors.global && (
+              <div className="rounded-md border border-red-500/40 bg-red-500/5 px-3 py-2 text-sm text-red-500">
+                {step3Errors.global}
+              </div>
+            )}
+
+            {locationOptions.length === 0 ? (
+              <p className="text-sm text-text-secondary">
+                No locations with IDs yet. Complete Step 2 first.
+              </p>
+            ) : (
+              <>
+                <div className="space-y-6">
+                  {facilities.map((fac, index) => (
+                    <div
+                      key={index}
+                      className="rounded-lg border border-border-primary bg-surface-elevated/60 p-4"
+                    >
+                      <div className="mb-3 flex items-center justify-between">
+                        <div className="text-sm font-medium text-text-primary">
+                          Facility {index + 1}
+                        </div>
+                        {facilities.length > 1 && (
+                          <button
+                            type="button"
+                            className="flex gap-1 text-xs text-red-500 hover:underline"
+                            onClick={() => removeFacility(index)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            Remove
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <Input
+                          label="Name *"
+                          placeholder="e.g. Gaming Zone A, Court 1"
+                          value={fac.name}
+                          onChange={(e) =>
+                            handleFacilityChange(index, "name", e.target.value)
+                          }
+                          error={
+                            step3Errors.fields[`${index}.name`] ?? undefined
+                          }
+                        />
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-text-secondary">
+                            Type *
+                          </label>
+                          <select
+                            className="w-full rounded-md border border-border-primary bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary"
+                            value={fac.type}
+                            onChange={(e) =>
+                              handleFacilityChange(
+                                index,
+                                "type",
+                                e.target.value
+                              )
+                            }
+                          >
+                            <option value="gaming-pc">Gaming — PC</option>
+                            <option value="vr">Gaming — VR</option>
+                            <option value="ps5">Gaming — PS5</option>
+                            <option value="ps4">Gaming — PS4</option>
+                            <option value="xbox">Gaming — XBOX</option>
+                            <option value="snooker-table">Snooker table</option>
+                            <option value="table-tennis-table">
+                              Table tennis table
+                            </option>
+                            <option value="futsal-field">Futsal field</option>
+                            <option value="cricket-pitch">Cricket pitch</option>
+                            <option value="padel-court">Padel court</option>
+                            <option value="other">Other</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-text-secondary">
+                            Location *
+                          </label>
+                          <select
+                            className="w-full rounded-md border border-border-primary bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary"
+                            value={fac.location_id}
+                            onChange={(e) =>
+                              handleFacilityChange(
+                                index,
+                                "location_id",
+                                e.target.value
+                              )
+                            }
+                          >
+                            <option value="">Select a location</option>
+                            {locationOptions.map((opt) => (
+                              <option key={opt.id} value={opt.id}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                          {step3Errors.fields[`${index}.location_id`] && (
+                            <p className="mt-1 text-xs text-red-500">
+                              {step3Errors.fields[`${index}.location_id`]}
+                            </p>
+                          )}
+                        </div>
+
+                        <Input
+                          label="Capacity"
+                          type="number"
+                          placeholder="Optional"
+                          value={
+                            fac.capacity != null ? String(fac.capacity) : ""
+                          }
+                          onChange={(e) =>
+                            handleFacilityChange(
+                              index,
+                              "capacity",
+                              e.target.value
+                            )
+                          }
+                        />
+
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-text-secondary">
+                            Status
+                          </label>
+                          <select
+                            className="w-full rounded-md border border-border-primary bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary"
+                            value={fac.status}
+                            onChange={(e) =>
+                              handleFacilityChange(
+                                index,
+                                "status",
+                                e.target.value
+                              )
+                            }
+                          >
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="maintenance">Maintenance</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={addFacility}
+                    disabled={isSubmitting}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add another facility
+                  </Button>
+                </div>
+              </>
+            )}
+
+            <div className="mt-4 flex justify-between gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => goToStep(2)}
+                disabled={isSubmitting}
+              >
+                Back
+              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => router.push("/dashboard")}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSubmitStep3} disabled={isSubmitting}>
+                  {isSubmitting
+                    ? "Saving facilities..."
+                    : "Complete Setup"}
                 </Button>
               </div>
             </div>

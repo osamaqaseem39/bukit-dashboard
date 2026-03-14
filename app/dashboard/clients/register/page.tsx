@@ -66,6 +66,7 @@ export default function ClientOnboardingPage() {
       city: "",
       state: "",
       country: "",
+      postal_code: "",
       phone: "",
     },
   ]);
@@ -141,6 +142,7 @@ export default function ClientOnboardingPage() {
         city: "",
         state: "",
         country: "",
+        postal_code: "",
         phone: "",
         latitude: undefined,
         longitude: undefined,
@@ -617,6 +619,38 @@ export default function ClientOnboardingPage() {
                       value={loc.address || ""}
                       onChange={(e) =>
                         handleLocationChange(index, "address", e.target.value)
+                      }
+                    />
+                    <Input
+                      label="City"
+                      placeholder="City"
+                      value={loc.city || ""}
+                      onChange={(e) =>
+                        handleLocationChange(index, "city", e.target.value)
+                      }
+                    />
+                    <Input
+                      label="State / Region"
+                      placeholder="State or region"
+                      value={loc.state || ""}
+                      onChange={(e) =>
+                        handleLocationChange(index, "state", e.target.value)
+                      }
+                    />
+                    <Input
+                      label="Country"
+                      placeholder="Country"
+                      value={loc.country || ""}
+                      onChange={(e) =>
+                        handleLocationChange(index, "country", e.target.value)
+                      }
+                    />
+                    <Input
+                      label="Postal code"
+                      placeholder="ZIP or postal code"
+                      value={loc.postal_code || ""}
+                      onChange={(e) =>
+                        handleLocationChange(index, "postal_code", e.target.value)
                       }
                     />
                   </div>
