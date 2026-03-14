@@ -5,11 +5,11 @@ import {
   Users,
   Gamepad2,
   Calendar,
-  TrendingUp,
-  DollarSign,
   Activity,
   Briefcase,
   ArrowRight,
+  BarChart3,
+  Settings,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import StatCard from "@/components/ui/StatCard";
@@ -185,6 +185,63 @@ export default function DashboardPage() {
           {error}
         </div>
       )}
+
+      {/* Quick action buttons */}
+      <div className="flex flex-wrap gap-3">
+        {showBookings && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => router.push("/dashboard/bookings")}
+            className="gap-2"
+          >
+            <Calendar className="h-4 w-4" />
+            Bookings
+          </Button>
+        )}
+        {showGaming && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => router.push("/dashboard/gaming")}
+            className="gap-2"
+          >
+            <Gamepad2 className="h-4 w-4" />
+            Gaming
+          </Button>
+        )}
+        {user?.role === "admin" && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => router.push("/dashboard/clients")}
+            className="gap-2"
+          >
+            <Briefcase className="h-4 w-4" />
+            Businesses
+          </Button>
+        )}
+        {showAnalytics && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => router.push("/dashboard/analytics")}
+            className="gap-2"
+          >
+            <BarChart3 className="h-4 w-4" />
+            Analytics
+          </Button>
+        )}
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => router.push("/dashboard/settings")}
+          className="gap-2"
+        >
+          <Settings className="h-4 w-4" />
+          Settings
+        </Button>
+      </div>
 
       {/* Stats Grid */}
       {showOverview && (
