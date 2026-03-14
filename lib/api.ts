@@ -513,9 +513,13 @@ export async function createLocationApi(payload: LocationPayload) {
 }
 
 export async function updateLocationApi(id: string, payload: Partial<LocationPayload>) {
+  // The backend's UpdateLocationDto does not allow an `id` field in the body.
+  // Ensure we never send it, even if the caller passes it in.
+  const { id: _ignoredId, ...safePayload } = payload;
+
   return apiFetch<Location>(`/locations/${id}`, {
     method: "PATCH",
-    body: JSON.stringify(payload),
+    body: JSON.stringify(safePayload),
   });
 }
 
