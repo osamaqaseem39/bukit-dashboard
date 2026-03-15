@@ -586,7 +586,9 @@ export async function createFacilityApi(payload: FacilityPayload) {
     throw new Error("location_id is required to create a facility");
   }
 
-  const { location_id, ...body } = payload;
+  // The backend's CreateFacilityDto does not allow `location_id` or `capacity` fields in the body.
+  // Strip them before sending.
+  const { location_id, capacity: _ignoredCapacity, ...body } = payload;
 
   return apiFetch<Facility>(`/locations/${location_id}/facilities`, {
     method: "POST",
@@ -598,9 +600,12 @@ export async function createFacilityForLocationApi(
   locationId: string,
   payload: Omit<FacilityPayload, "location_id">
 ) {
+  // The backend's CreateFacilityDto does not allow a `capacity` field in the body.
+  const { capacity: _ignoredCapacity, ...safePayload } = payload;
+
   return apiFetch<Facility>(`/locations/${locationId}/facilities`, {
     method: "POST",
-    body: JSON.stringify(payload),
+    body: JSON.stringify(safePayload),
   });
 }
 
@@ -670,11 +675,14 @@ export async function updateFacilityApi(
   facilityId: string,
   payload: Partial<FacilityPayload>
 ) {
+  // The backend's UpdateFacilityDto does not allow a `capacity` field in the body.
+  const { capacity: _ignoredCapacity, ...safePayload } = payload;
+
   return apiFetch<Facility>(
     `/locations/${locationId}/facilities/${facilityId}`,
     {
       method: "PATCH",
-      body: JSON.stringify(payload),
+      body: JSON.stringify(safePayload),
     }
   );
 }
