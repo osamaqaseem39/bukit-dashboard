@@ -544,16 +544,20 @@ export interface LocationPayload {
 }
 
 export async function createLocationApi(payload: LocationPayload) {
+  // The backend's CreateLocationDto does not allow an `image_urls` field yet.
+  // Strip it from the payload before sending.
+  const { image_urls: _ignoredImageUrls, ...safePayload } = payload;
+
   return apiFetch<Location>("/locations", {
     method: "POST",
-    body: JSON.stringify(payload),
+    body: JSON.stringify(safePayload),
   });
 }
 
 export async function updateLocationApi(id: string, payload: Partial<LocationPayload>) {
-  // The backend's UpdateLocationDto does not allow an `id` field in the body.
-  // Ensure we never send it, even if the caller passes it in.
-  const { id: _ignoredId, ...safePayload } = payload;
+  // The backend's UpdateLocationDto does not allow an `id` or `image_urls` field in the body.
+  // Ensure we never send them, even if the caller passes them in.
+  const { id: _ignoredId, image_urls: _ignoredImageUrls, ...safePayload } = payload;
 
   return apiFetch<Location>(`/locations/${id}`, {
     method: "PATCH",
