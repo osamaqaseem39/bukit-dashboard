@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
-import { ImageUpload } from "@/components/ui";
+import { ImageUpload, ImageGallery } from "@/components/ui";
 import {
   createClientWithUserApi,
   createFacilityApi,
@@ -128,6 +128,7 @@ export default function ClientOnboardingPage() {
       country: "",
       postal_code: "",
       phone: "",
+      image_urls: [],
     },
   ]);
   const [step2Errors, setStep2Errors] = useState<StepErrorState>(
@@ -206,8 +207,15 @@ export default function ClientOnboardingPage() {
         phone: "",
         latitude: undefined,
         longitude: undefined,
+        image_urls: [],
       },
     ]);
+  }
+
+  function handleLocationGalleryChange(index: number, image_urls: string[]) {
+    setLocations((prev) =>
+      prev.map((loc, i) => (i === index ? { ...loc, image_urls } : loc))
+    );
   }
 
   function removeLocation(index: number) {
@@ -713,6 +721,15 @@ export default function ClientOnboardingPage() {
                         handleLocationChange(index, "postal_code", e.target.value)
                       }
                     />
+                    <div className="md:col-span-2">
+                      <ImageGallery
+                        label="Location image gallery"
+                        value={loc.image_urls ?? []}
+                        onChange={(urls) =>
+                          handleLocationGalleryChange(index, urls)
+                        }
+                      />
+                    </div>
                   </div>
                 </div>
               ))}

@@ -313,6 +313,8 @@ export interface Location {
   latitude?: number | null;
   longitude?: number | null;
   facility_types?: string[] | null;
+  /** URLs of images in the location gallery */
+  image_urls?: string[] | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -537,6 +539,8 @@ export interface LocationPayload {
   latitude?: number | null;
   longitude?: number | null;
   facility_types?: string[] | null;
+  /** URLs of images in the location gallery */
+  image_urls?: string[] | null;
 }
 
 export async function createLocationApi(payload: LocationPayload) {

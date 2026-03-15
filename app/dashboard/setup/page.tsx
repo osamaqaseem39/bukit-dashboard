@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { ImageUpload } from "@/components/ui";
+import { ImageUpload, ImageGallery } from "@/components/ui";
 import {
   createClientWithUserApi,
   createLocationApi,
@@ -172,6 +172,7 @@ export default function DashboardSetupPage() {
       latitude: undefined,
       longitude: undefined,
       facility_types: [],
+      image_urls: [],
     },
   ]);
   const [step2Errors, setStep2Errors] = useState<StepErrorState>(
@@ -267,6 +268,7 @@ export default function DashboardSetupPage() {
                   })()
                 : undefined,
             facility_types: (loc as any).facility_types ?? [],
+            image_urls: (loc as any).image_urls ?? [],
           }));
           setLocations(mapped);
           // Load existing facilities for this client's locations
@@ -386,8 +388,19 @@ export default function DashboardSetupPage() {
         latitude: undefined,
         longitude: undefined,
         facility_types: [],
+        image_urls: [],
       },
     ]);
+  }
+
+  function handleLocationGalleryChange(index: number, image_urls: string[]) {
+    setLocations((prev) =>
+      prev.map((loc, i) => (i === index ? { ...loc, image_urls } : loc))
+    );
+    setStep2Errors((prev) => ({
+      global: null,
+      fields: { ...prev.fields, [`${index}.image_urls`]: null },
+    }));
   }
 
   const GAMING_ZONE_CHILD_TYPES = [
@@ -794,6 +807,7 @@ export default function DashboardSetupPage() {
                 })()
               : undefined,
           facility_types: (loc as any).facility_types ?? [],
+          image_urls: (loc as any).image_urls ?? [],
         }))
       );
       setCurrentStep(3);
@@ -1199,6 +1213,15 @@ export default function DashboardSetupPage() {
                         step2Errors.fields[`${index}.longitude`] ?? undefined
                       }
                     />
+                    <div className="md:col-span-2">
+                      <ImageGallery
+                        label="Location image gallery"
+                        value={loc.image_urls ?? []}
+                        onChange={(urls) =>
+                          handleLocationGalleryChange(index, urls)
+                        }
+                      />
+                    </div>
                     <div className="md:col-span-2">
                       <label className="mb-1 block text-xs font-medium text-text-secondary">
                         Facility types at this branch

@@ -12,3 +12,4 @@ export {
 } from "./Table";
 export { default as StatCard } from "./StatCard";
 export { default as ImageUpload } from "./ImageUpload";
+export { default as ImageGallery } from "./ImageGallery";

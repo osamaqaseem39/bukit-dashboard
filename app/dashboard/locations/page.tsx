@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { MapPin, Plus } from "lucide-react";
+import { MapPin, Plus, Images } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import {
@@ -13,7 +13,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/Table";
-import { Location, getLocationsApi } from "@/lib/api";
+import { Location, getLocationsApi, getApiBaseUrl } from "@/lib/api";
+
+function resolveImageUrl(url: string): string {
+  if (!url) return url;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  const base = getApiBaseUrl().replace(/\/$/, "");
+  return url.startsWith("/") ? `${base}${url}` : `${base}/${url}`;
+}
 
 export default function LocationsPage() {
   const searchParams = useSearchParams();
@@ -78,30 +85,78 @@ export default function LocationsPage() {
           <p className="text-sm text-text-secondary">Loading locations...</p>
         )}
         {!loading &&
-          locations.map((location) => (
-            <Card key={location.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-text-primary">
-                      {location.name}
-                    </h3>
-                    <p className="mt-1 text-sm text-text-secondary">
-                      {[location.city, location.state, location.country]
-                        .filter(Boolean)
-                        .join(", ")}
-                    </p>
+          locations.map((location) => {
+            const galleryUrls = location.image_urls?.filter(Boolean) ?? [];
+            const firstImage = galleryUrls[0];
+            return (
+              <Card key={location.id}>
+                {firstImage ? (
+                  <div className="relative aspect-[16/10] w-full overflow-hidden rounded-t-lg bg-surface-elevated">
+                    <img
+                      src={resolveImageUrl(firstImage)}
+                      alt=""
+                      className="h-full w-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                    {galleryUrls.length > 1 && (
+                      <span className="absolute right-2 bottom-2 flex items-center gap-1 rounded bg-black/60 px-2 py-1 text-xs text-white">
+                        <Images className="h-3.5 w-3.5" />
+                        {galleryUrls.length}
+                      </span>
+                    )}
                   </div>
-                  <MapPin className="h-5 w-5 text-text-secondary" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-text-secondary">
-                  {location.address}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+                ) : (
+                  <div className="flex aspect-[16/10] w-full items-center justify-center rounded-t-lg bg-surface-elevated text-text-secondary">
+                    <Images className="h-10 w-10 opacity-50" />
+                  </div>
+                )}
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-text-primary">
+                        {location.name}
+                      </h3>
+                      <p className="mt-1 text-sm text-text-secondary">
+                        {[location.city, location.state, location.country]
+                          .filter(Boolean)
+                          .join(", ")}
+                      </p>
+                    </div>
+                    <MapPin className="h-5 w-5 shrink-0 text-text-secondary" />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {location.address && (
+                    <p className="text-sm text-text-secondary">
+                      {location.address}
+                    </p>
+                  )}
+                  {galleryUrls.length > 1 && (
+                    <div className="flex flex-wrap gap-1">
+                      {galleryUrls.slice(0, 5).map((url, i) => (
+                        <div
+                          key={i}
+                          className="h-12 w-12 shrink-0 overflow-hidden rounded border border-border bg-surface-elevated"
+                        >
+                          <img
+                            src={resolveImageUrl(url)}
+                            alt=""
+                            className="h-full w-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                      ))}
+                      {galleryUrls.length > 5 && (
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded border border-border bg-surface-elevated text-xs text-text-secondary">
+                          +{galleryUrls.length - 5}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
       </div>
 
       {/* Locations Table */}

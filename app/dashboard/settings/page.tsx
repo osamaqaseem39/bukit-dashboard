@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { ImageUpload } from "@/components/ui";
+import { ImageUpload, ImageGallery } from "@/components/ui";
 import { Save, Building2, MapPin, CircleDot, Loader2, Plus, X } from "lucide-react";
 import {
   getClientByUserIdApi,
@@ -199,6 +199,7 @@ export default function SettingsPage() {
       state: location.state || "",
       country: location.country || "",
       postal_code: location.postal_code || "",
+      image_urls: location.image_urls ?? [],
     });
   }
 
@@ -745,6 +746,13 @@ export default function SettingsPage() {
                             }
                           />
                         </div>
+                        <ImageGallery
+                          label="Location image gallery"
+                          value={locationForm.image_urls ?? []}
+                          onChange={(urls) =>
+                            setLocationForm({ ...locationForm, image_urls: urls })
+                          }
+                        />
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="secondary"
