@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { ImageUpload, ImageGallery } from "@/components/ui";
-import { Save, Building2, MapPin, CircleDot, Loader2, Plus, X } from "lucide-react";
+import { Save, Building2, MapPin, CircleDot, Loader2, Plus, X, Copy } from "lucide-react";
 import {
   getClientByUserIdApi,
   updateClientApi,
@@ -1049,6 +1049,27 @@ export default function SettingsPage() {
                                               });
                                             }}
                                           />
+                                          <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 w-8 p-0 flex items-center justify-center rounded-full"
+                                            onClick={() => {
+                                              const pcs = [...newFacilityForm.pcs];
+                                              const baseLabel = pc.label?.trim() || `PC ${index + 1}`;
+                                              pcs.push({
+                                                ...pc,
+                                                label: `${baseLabel} (copy)`,
+                                              });
+                                              setNewFacilityForm({
+                                                ...newFacilityForm,
+                                                pcs,
+                                              });
+                                            }}
+                                            aria-label="Duplicate PC"
+                                          >
+                                            <Copy className="h-4 w-4" />
+                                          </Button>
                                           {newFacilityForm.pcs.length > 1 && (
                                             <Button
                                               type="button"
