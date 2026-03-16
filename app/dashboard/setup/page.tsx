@@ -186,7 +186,6 @@ export default function DashboardSetupPage() {
       type: "other",
       status: "active",
       location_id: "",
-      capacity: undefined,
     },
   ]);
   const [step3Errors, setStep3Errors] = useState<StepErrorState>(
@@ -286,7 +285,6 @@ export default function DashboardSetupPage() {
                 name: f.name,
                 type: f.type,
                 status: f.status,
-                capacity: f.capacity ?? undefined,
               }))
             );
           }
@@ -483,25 +481,17 @@ export default function DashboardSetupPage() {
     setFacilities((prev) =>
       prev.map((fac, i) => {
         if (i !== index) return fac;
-        const capacityVal =
-          field === "capacity"
-            ? value === ""
-              ? undefined
-              : Number(value)
-            : undefined;
         const next: FacilityPayload = {
           ...fac,
-          ...(field === "capacity" && capacityVal !== undefined
-            ? { capacity: capacityVal }
-            : field === "location_id"
-              ? { location_id: value }
-              : field === "name"
-                ? { name: value }
-                : field === "type"
-                  ? { type: value }
-                  : field === "status"
-                    ? { status: value as FacilityPayload["status"] }
-                    : {}),
+          ...(field === "location_id"
+            ? { location_id: value }
+            : field === "name"
+              ? { name: value }
+              : field === "type"
+                ? { type: value }
+                : field === "status"
+                  ? { status: value as FacilityPayload["status"] }
+                  : {}),
         };
         // When location changes, set type to first facility option for that location (from Step 2)
         if (field === "location_id") {
@@ -536,7 +526,6 @@ export default function DashboardSetupPage() {
         type: firstType,
         status: "active",
         location_id: firstLocId,
-        capacity: undefined,
       },
     ]);
   }
@@ -835,7 +824,6 @@ export default function DashboardSetupPage() {
             name: fac.name,
             type: fac.type,
             status: fac.status,
-            capacity: fac.capacity ?? null,
           });
         } else {
           await createFacilityApi({
@@ -843,7 +831,6 @@ export default function DashboardSetupPage() {
             name: fac.name,
             type: fac.type,
             status: fac.status,
-            capacity: fac.capacity ?? null,
           });
         }
       }
@@ -1459,22 +1446,6 @@ export default function DashboardSetupPage() {
                             </p>
                           )}
                         </div>
-
-                        <Input
-                          label="Capacity"
-                          type="number"
-                          placeholder="Optional"
-                          value={
-                            fac.capacity != null ? String(fac.capacity) : ""
-                          }
-                          onChange={(e) =>
-                            handleFacilityChange(
-                              index,
-                              "capacity",
-                              e.target.value
-                            )
-                          }
-                        />
 
                         <div>
                           <label className="mb-1 block text-xs font-medium text-text-secondary">

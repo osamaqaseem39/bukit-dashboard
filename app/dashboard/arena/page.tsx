@@ -253,14 +253,13 @@ export default function ArenaPage() {
                 <TableHead>Arena Type</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Capacity</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && filteredFacilities.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={4}
                     className="py-8 text-center text-sm text-text-secondary"
                   >
                     Loading arena facilities...
@@ -301,16 +300,13 @@ export default function ArenaPage() {
                           {formatStatus(facility.status)}
                         </span>
                       </TableCell>
-                      <TableCell>
-                        {facility.capacity != null ? facility.capacity : "-"}
-                      </TableCell>
                     </TableRow>
                   );
                 })}
               {!loading && filteredFacilities.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={4}
                     className="py-8 text-center text-sm text-text-secondary"
                   >
                     No arena facilities found.

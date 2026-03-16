@@ -71,7 +71,6 @@ export default function SettingsPage() {
     name: "",
     type: "",
     status: "active" as FacilityStatus,
-    capacity: undefined as number | undefined,
     // For gaming PCs: array of individual PC specs
     pcs: [] as {
       label: string;
@@ -236,7 +235,6 @@ export default function SettingsPage() {
       name: facility.name,
       type: facility.type,
       status: facility.status,
-      capacity: facility.capacity || undefined,
       metadata,
       // Gaming PC units (if present)
       pcs: Array.isArray((metadata as any).pcs)
@@ -346,7 +344,6 @@ export default function SettingsPage() {
         name: facilityForm.name,
         type: facilityForm.type,
         status: facilityForm.status,
-        capacity: facilityForm.capacity,
         metadata: finalMetadata,
       });
       setSuccess("Facility updated successfully");
@@ -367,7 +364,6 @@ export default function SettingsPage() {
       name: "",
       type: "",
       status: "active",
-      capacity: undefined,
       pcs: [
         {
           label: "PC 1",
@@ -388,7 +384,6 @@ export default function SettingsPage() {
       name: "",
       type: "",
       status: "active",
-      capacity: undefined,
       pcs: [
         {
           label: "PC 1",
@@ -400,6 +395,38 @@ export default function SettingsPage() {
       ],
       screenSizeInches: "",
       gamesAvailable: "",
+    });
+  }
+
+  function startDuplicateFacility(facility: Facility) {
+    const meta = facility.metadata || {};
+    const pcs =
+      facility.type === "gaming-pc" && Array.isArray(meta.pcs) && meta.pcs.length > 0
+        ? meta.pcs.map((pc: any, i: number) => ({
+            label: pc.label || `PC ${i + 1}`,
+            cpu: pc.cpu || "",
+            gpu: pc.gpu || "",
+            ram: pc.ram || "",
+            refreshRate: pc.refresh_rate_hz != null ? String(pc.refresh_rate_hz) : "",
+          }))
+        : [
+            {
+              label: "PC 1",
+              cpu: "",
+              gpu: "",
+              ram: "",
+              refreshRate: "",
+            },
+          ];
+    setCreatingFacilityForLocation(facility.location_id);
+    setNewFacilityForm({
+      name: `${facility.name} (copy)`,
+      type: facility.type,
+      status: facility.status,
+      pcs,
+      screenSizeInches:
+        meta.screen_size_inches != null ? String(meta.screen_size_inches) : "",
+      gamesAvailable: meta.games_available || "",
     });
   }
 
@@ -475,7 +502,6 @@ export default function SettingsPage() {
         name: newFacilityForm.name,
         type: newFacilityForm.type,
         status: newFacilityForm.status,
-        capacity: newFacilityForm.capacity,
         metadata: Object.keys(metadata).length ? metadata : undefined,
       });
       setSuccess("Facility created successfully");
@@ -905,23 +931,6 @@ export default function SettingsPage() {
                                 }
                                 placeholder="e.g., gaming-pc, vr, ps5, futsal-field"
                               />
-                              <Input
-                                label="Capacity"
-                                type="number"
-                                min={0}
-                                value={newFacilityForm.capacity || ""}
-                                onChange={(e) =>
-                                  setNewFacilityForm({
-                                    ...newFacilityForm,
-                                    capacity: Math.max(
-                                      0,
-                                      isNaN(parseInt(e.target.value))
-                                        ? 0
-                                        : parseInt(e.target.value),
-                                    ),
-                                  })
-                                }
-                              />
                               {newFacilityForm.type === "gaming-pc" && (
                                 <div className="md:col-span-2 space-y-3">
                                   <div className="flex items-center justify-between">
@@ -1170,23 +1179,6 @@ export default function SettingsPage() {
                                         setFacilityForm({
                                           ...facilityForm,
                                           type: e.target.value,
-                                        })
-                                      }
-                                    />
-                                    <Input
-                                      label="Capacity"
-                                      type="number"
-                                      min={0}
-                                      value={facilityForm.capacity || ""}
-                                      onChange={(e) =>
-                                        setFacilityForm({
-                                          ...facilityForm,
-                                          capacity: Math.max(
-                                            0,
-                                            isNaN(parseInt(e.target.value))
-                                              ? 0
-                                              : parseInt(e.target.value),
-                                          ),
                                         })
                                       }
                                     />
@@ -1449,18 +1441,21 @@ export default function SettingsPage() {
                                           {facility.status}
                                         </span>
                                       </p>
-                                      {facility.capacity && (
-                                        <p className="mt-1 text-sm text-text-secondary">
-                                          Capacity: {facility.capacity}
-                                        </p>
-                                      )}
                                     </div>
-                                    <Button
-                                      variant="secondary"
-                                      onClick={() => startEditFacility(facility)}
-                                    >
-                                      Edit
-                                    </Button>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        variant="secondary"
+                                        onClick={() => startDuplicateFacility(facility)}
+                                      >
+                                        Duplicate
+                                      </Button>
+                                      <Button
+                                        variant="secondary"
+                                        onClick={() => startEditFacility(facility)}
+                                      >
+                                        Edit
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
                               )}

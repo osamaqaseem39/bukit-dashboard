@@ -142,7 +142,6 @@ export default function ClientOnboardingPage() {
       type: "other",
       status: "active",
       location_id: "",
-      capacity: undefined,
     },
   ]);
   const [step3Errors, setStep3Errors] = useState<StepErrorState>(
@@ -229,17 +228,7 @@ export default function ClientOnboardingPage() {
   ) {
     setFacilities((prev) =>
       prev.map((fac, i) =>
-        i === index
-          ? {
-              ...fac,
-              [field]:
-                field === "capacity"
-                  ? value === ""
-                    ? undefined
-                    : Number(value)
-                  : value,
-            }
-          : fac
+        i === index ? { ...fac, [field]: value } : fac
       )
     );
     setStep3Errors((prev) => ({
@@ -256,13 +245,25 @@ export default function ClientOnboardingPage() {
         type: "other",
         status: "active",
         location_id: "",
-        capacity: undefined,
       },
     ]);
   }
 
   function removeFacility(index: number) {
     setFacilities((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function duplicateFacility(index: number) {
+    const source = facilities[index];
+    const name = (source.name || "").trim();
+    setFacilities((prev) => [
+      ...prev,
+      {
+        ...source,
+        name: name ? `${name} (copy)` : "Copy",
+        location_id: source.location_id || "",
+      },
+    ]);
   }
 
   function validateStep1(): boolean {
@@ -800,15 +801,24 @@ export default function ClientOnboardingPage() {
                     <div className="text-sm font-medium text-text-primary">
                       Facility {index + 1}
                     </div>
-                    {facilities.length > 1 && (
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        className="text-xs text-red-500 hover:underline"
-                        onClick={() => removeFacility(index)}
+                        className="text-xs text-primary hover:underline"
+                        onClick={() => duplicateFacility(index)}
                       >
-                        Remove
+                        Duplicate
                       </button>
-                    )}
+                      {facilities.length > 1 && (
+                        <button
+                          type="button"
+                          className="text-xs text-red-500 hover:underline"
+                          onClick={() => removeFacility(index)}
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
@@ -901,16 +911,6 @@ export default function ClientOnboardingPage() {
                         </p>
                       )}
                     </div>
-
-                    <Input
-                      label="Capacity"
-                      type="number"
-                      placeholder="Optional number of players/seats"
-                      value={fac.capacity != null ? String(fac.capacity) : ""}
-                      onChange={(e) =>
-                        handleFacilityChange(index, "capacity", e.target.value)
-                      }
-                    />
 
                     <div>
                       <label className="mb-1 block text-xs font-medium text-text-secondary">
