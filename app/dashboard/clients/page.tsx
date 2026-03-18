@@ -228,7 +228,7 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6 px-4 sm:px-6">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -719,43 +719,59 @@ export default function ClientsPage() {
               {editError}
             </div>
           )}
-          <div className="grid gap-4 md:grid-cols-2">
-            <Input
-              label="Company name"
-              value={editForm.company_name ?? ""}
-              onChange={(e) =>
-                setEditForm((prev) => ({ ...prev, company_name: e.target.value }))
-              }
-            />
-            <Input
-              label="Contact name"
-              value={editForm.contact_name ?? ""}
-              onChange={(e) =>
-                setEditForm((prev) => ({ ...prev, contact_name: e.target.value }))
-              }
-            />
-            <Input
-              label="Email"
-              type="email"
-              value={editForm.email ?? ""}
-              onChange={(e) =>
-                setEditForm((prev) => ({ ...prev, email: e.target.value }))
-              }
-            />
-            <Input
-              label="Phone"
-              value={editForm.phone ?? ""}
-              onChange={(e) =>
-                setEditForm((prev) => ({ ...prev, phone: e.target.value }))
-              }
-            />
-            <Input
-              label="Logo URL"
-              value={editForm.logo_url ?? ""}
-              onChange={(e) =>
-                setEditForm((prev) => ({ ...prev, logo_url: e.target.value }))
-              }
-            />
+          <div className="grid gap-4 md:grid-cols-12">
+            <div className="md:col-span-6">
+              <Input
+                label="Company name"
+                value={editForm.company_name ?? ""}
+                onChange={(e) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    company_name: e.target.value,
+                  }))
+                }
+              />
+            </div>
+            <div className="md:col-span-6">
+              <Input
+                label="Contact name"
+                value={editForm.contact_name ?? ""}
+                onChange={(e) =>
+                  setEditForm((prev) => ({
+                    ...prev,
+                    contact_name: e.target.value,
+                  }))
+                }
+              />
+            </div>
+            <div className="md:col-span-6">
+              <Input
+                label="Email"
+                type="email"
+                value={editForm.email ?? ""}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, email: e.target.value }))
+                }
+              />
+            </div>
+            <div className="md:col-span-6">
+              <Input
+                label="Phone"
+                value={editForm.phone ?? ""}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, phone: e.target.value }))
+                }
+              />
+            </div>
+            <div className="md:col-span-12">
+              <Input
+                label="Logo URL"
+                value={editForm.logo_url ?? ""}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, logo_url: e.target.value }))
+                }
+              />
+            </div>
           </div>
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="secondary" onClick={closeEdit} disabled={savingEdit}>

@@ -11,13 +11,10 @@ import {
   Settings,
   Menu,
   X,
-  Gamepad2,
   MapPin,
   Calendar,
-  CircleDot,
-  Table2,
-  Activity,
   Briefcase,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DashboardModuleKey } from "@/lib/api";
@@ -48,6 +45,12 @@ const navItems: NavItem[] = [
     moduleKey: "dashboard-overview",
   },
   {
+    label: "Business Setup",
+    href: "/dashboard/setup",
+    icon: <Briefcase className="h-5 w-5" />,
+    roles: ["admin"],
+  },
+  {
     label: "Businesses",
     href: "/dashboard/clients",
     icon: <Briefcase className="h-5 w-5" />,
@@ -63,8 +66,8 @@ const navItems: NavItem[] = [
   {
     label: "Facilities",
     href: "/dashboard/facilities",
-    icon: <CircleDot className="h-5 w-5" />,
-    roles: ["admin", "client"],
+    icon: <Building2 className="h-5 w-5" />,
+    roles: ["client"],
     // No moduleKey yet so it's available to all admin/client users;
     // can be module-gated later when backend exposes a facilities module key.
   },
@@ -72,7 +75,7 @@ const navItems: NavItem[] = [
     label: "Users",
     href: "/dashboard/users",
     icon: <Users className="h-5 w-5" />,
-    roles: ["admin"],
+    roles: ["admin", "client"],
     moduleKey: "users",
   },
   {
@@ -86,14 +89,14 @@ const navItems: NavItem[] = [
     label: "Analytics",
     href: "/dashboard/analytics",
     icon: <BarChart3 className="h-5 w-5" />,
-    roles: ["admin"],
+    roles: ["admin", "client"],
     moduleKey: "analytics",
   },
   {
     label: "Settings",
     href: "/dashboard/settings",
     icon: <Settings className="h-5 w-5" />,
-    roles: ["admin", "client", "user"],
+    roles: ["admin", "client", "user", "location_manager"],
     moduleKey: "settings",
   },
 ];
@@ -113,6 +116,38 @@ export default function Sidebar() {
     return user.modules.filter(Boolean) as DashboardModuleKey[];
   }, [user]);
 
+  const visibleNavItems = useMemo(() => {
+    if (!user) return navItems;
+
+    // Match the client dashboard experience (ordering + grouping) for:
+    // - client (business owner)
+    // - location_manager (similar scope, but without analytics)
+    if (user.role === "client") {
+      const clientOrder = [
+        "Dashboard",
+        "Analytics",
+        "Bookings",
+        "Locations",
+        "Facilities",
+        "Settings",
+      ];
+
+      return clientOrder
+        .map((label) => navItems.find((item) => item.label === label))
+        .filter((item): item is NavItem => Boolean(item));
+    }
+
+    if (user.role === "location_manager") {
+      const locationManagerOrder = ["Bookings", "Settings"];
+
+      return locationManagerOrder
+        .map((label) => navItems.find((item) => item.label === label))
+        .filter((item): item is NavItem => Boolean(item));
+    }
+
+    return navItems;
+  }, [user]);
+
   // For client/user with no modules, only show core items (no Gaming, Snooker, etc.)
   const isRestrictedNoModules =
     user &&
@@ -122,6 +157,17 @@ export default function Sidebar() {
     "dashboard-overview",
     "settings",
   ];
+
+  const bottomPinnedLabels = ["Locations", "Facilities", "Settings"];
+  const { topItems, bottomItems } = useMemo(() => {
+    if (!user || user.role !== "client") {
+      return { topItems: visibleNavItems, bottomItems: [] as NavItem[] };
+    }
+
+    const top = visibleNavItems.filter((item) => !bottomPinnedLabels.includes(item.label));
+    const bottom = visibleNavItems.filter((item) => bottomPinnedLabels.includes(item.label));
+    return { topItems: top, bottomItems: bottom };
+  }, [user, visibleNavItems]);
 
   useEffect(() => {
     const checkDesktop = () => {
@@ -185,16 +231,11 @@ export default function Sidebar() {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto px-4 py-6">
             <ul className="space-y-1">
-              {navItems.map((item) => {
+              {topItems.map((item) => {
                 const isActive = pathname === item.href;
 
                 // Role-based restriction (still enforced)
                 if (item.roles && user && !item.roles.includes(user.role)) {
-                  return null;
-                }
-
-                // Location manager: only Bookings (add + view), no other sidebar items
-                if (user?.role === "location_manager" && item.href !== "/dashboard/bookings") {
                   return null;
                 }
 
@@ -235,6 +276,51 @@ export default function Sidebar() {
               })}
             </ul>
           </nav>
+
+          {/* Bottom nav: Locations, Facilities, Settings (client & location manager) */}
+          {bottomItems.length > 0 && (
+            <div className="border-t border-border px-4 py-4">
+              <ul className="space-y-1">
+                {bottomItems.map((item) => {
+                  const isActive = pathname === item.href;
+
+                  if (item.roles && user && !item.roles.includes(user.role)) return null;
+                  if (
+                    effectiveModules &&
+                    item.moduleKey &&
+                    !effectiveModules.includes(item.moduleKey)
+                  )
+                    return null;
+
+                  // For client/user with no modules assigned: only show core (Dashboard, Settings)
+                  if (
+                    isRestrictedNoModules &&
+                    (!item.moduleKey || !CORE_MODULE_KEYS.includes(item.moduleKey))
+                  ) {
+                    return null;
+                  }
+
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={() => setIsMobileOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                          isActive
+                            ? "bg-primary text-white"
+                            : "text-text-secondary hover:bg-[rgb(var(--bg))] hover:text-text-primary"
+                        )}
+                      >
+                        {item.icon}
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
 
           {/* Footer */}
           <div className="border-t border-border p-4">

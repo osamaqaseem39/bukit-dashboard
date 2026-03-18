@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Users,
-  Gamepad2,
   Calendar,
   Activity,
   Briefcase,
@@ -14,7 +13,6 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import StatCard from "@/components/ui/StatCard";
 import LineChart from "@/components/charts/LineChart";
-import BarChart from "@/components/charts/BarChart";
 import {
   Table,
   TableBody,
@@ -30,10 +28,8 @@ import Button from "@/components/ui/Button";
 import {
   getBookingsApi,
   getClientStatisticsApi,
-  getGamingCentersApi,
   getClientsApi,
   Booking,
-  GamingCenter,
   ClientStatistics,
   ClientSummary,
 } from "@/lib/api";
@@ -50,7 +46,6 @@ export default function DashboardPage() {
   }, [user?.role, router]);
 
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [gamingCenters, setGamingCenters] = useState<GamingCenter[]>([]);
   const [clientStats, setClientStats] = useState<ClientStatistics | null>(null);
   const [clients, setClients] = useState<ClientSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,9 +59,8 @@ export default function DashboardPage() {
         setLoading(true);
         setError(null);
 
-        const [bookingsRes, gamingRes, statsRes, clientsRes] = await Promise.allSettled([
+        const [bookingsRes, statsRes, clientsRes] = await Promise.allSettled([
           getBookingsApi(),
-          getGamingCentersApi(user?.role === "client" ? user.id : undefined),
           // Only admins can access /clients/statistics
           user?.role === "admin" ? getClientStatisticsApi() : Promise.resolve(null),
           // Only admins can access /clients
@@ -77,9 +71,6 @@ export default function DashboardPage() {
 
         if (bookingsRes.status === "fulfilled") {
           setBookings(bookingsRes.value || []);
-        }
-        if (gamingRes.status === "fulfilled") {
-          setGamingCenters(gamingRes.value || []);
         }
         if (statsRes.status === "fulfilled" && statsRes.value) {
           setClientStats(statsRes.value as ClientStatistics);
@@ -114,17 +105,12 @@ export default function DashboardPage() {
           "dashboard-overview",
           "analytics",
           "bookings",
-          "gaming",
         ]);
       }
 
       // Treat "client" as business owner with a business-focused view
       if (user.role === "client") {
-        return new Set<string>([
-          "dashboard-overview",
-          "bookings",
-          "gaming",
-        ]);
+        return new Set<string>(["dashboard-overview", "bookings"]);
       }
 
       // Basic user view
@@ -137,10 +123,8 @@ export default function DashboardPage() {
   const showOverview = modules.has("dashboard-overview");
   const showAnalytics = modules.has("analytics");
   const showBookings = modules.has("bookings");
-  const showGaming = modules.has("gaming");
 
   const totalBookings = bookings.length;
-  const gamingCount = gamingCenters.length;
 
   const recentBookings = [...bookings]
     .sort(
@@ -206,15 +190,15 @@ export default function DashboardPage() {
             Bookings
           </Button>
         )}
-        {showGaming && (
+        {(user?.role === "admin" || user?.role === "client") && (
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => router.push("/dashboard/gaming")}
+            onClick={() => router.push("/dashboard/facilities")}
             className="gap-2"
           >
-            <Gamepad2 className="h-4 w-4" />
-            Gaming
+            <Activity className="h-4 w-4" />
+            Facilities
           </Button>
         )}
         {user?.role === "admin" && (
@@ -282,20 +266,11 @@ export default function DashboardPage() {
               iconColor="text-success"
             />
           )}
-          {showGaming && (
-            <StatCard
-              title="Gaming Facilities"
-              value={formatNumber(gamingCount)}
-              change={undefined}
-              icon={Gamepad2}
-              iconColor="text-error"
-            />
-          )}
         </div>
       )}
 
       {/* Charts Row */}
-      {(showAnalytics || showGaming) && (
+      {showAnalytics && (
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Revenue Chart */}
           {showAnalytics && (
@@ -314,31 +289,6 @@ export default function DashboardPage() {
                       key: "bookings",
                       name: "Bookings",
                       color: "rgb(var(--success))",
-                    },
-                  ]}
-                  height={300}
-                />
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Gaming Facilities Chart */}
-          {showGaming && (
-            <Card>
-              <CardHeader>
-                <h2 className="text-lg font-medium text-text-primary">
-                  Gaming Facilities Performance
-                </h2>
-              </CardHeader>
-              <CardContent>
-                <BarChart
-                  data={gamingCenters}
-                  dataKey="name"
-                  bars={[
-                    {
-                      key: "status",
-                      name: "Status (active=1, other=0)",
-                      color: "rgb(var(--primary))",
                     },
                   ]}
                   height={300}

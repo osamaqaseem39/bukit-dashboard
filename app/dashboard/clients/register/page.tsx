@@ -478,7 +478,7 @@ export default function ClientOnboardingPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-5xl space-y-6 px-4 sm:px-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold text-text-primary">
@@ -538,66 +538,90 @@ export default function ClientOnboardingPage() {
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Input
-                label="Company name *"
-                placeholder="e.g. Bukit Gaming Lounge"
-                value={businessForm.companyName}
-                onChange={(e) =>
-                  handleBusinessChange("companyName", e.target.value)
-                }
-                error={step1Errors.fields.companyName ?? undefined}
-              />
-              <Input
-                label="Contact person"
-                placeholder="Primary contact person"
-                value={businessForm.contactName}
-                onChange={(e) =>
-                  handleBusinessChange("contactName", e.target.value)
-                }
-                error={step1Errors.fields.contactName ?? undefined}
-              />
-              <Input
-                label="Email *"
-                type="email"
-                placeholder="contact@business.com"
-                value={businessForm.email}
-                onChange={(e) =>
-                  handleBusinessChange("email", e.target.value)
-                }
-                error={step1Errors.fields.email ?? undefined}
-              />
-              <Input
-                label="Phone"
-                placeholder="+1 555 123 4567"
-                value={businessForm.phone}
-                onChange={(e) =>
-                  handleBusinessChange("phone", e.target.value)
-                }
-                error={step1Errors.fields.phone ?? undefined}
-              />
-              <Input
-                label="Tax ID"
-                placeholder="Tax identification number"
-                value={businessForm.taxId}
-                onChange={(e) =>
-                  handleBusinessChange("taxId", e.target.value)
-                }
-              />
-              <Input
-                label="Registration number"
-                placeholder="Company registration number"
-                value={businessForm.registrationNumber}
-                onChange={(e) =>
-                  handleBusinessChange("registrationNumber", e.target.value)
-                }
-              />
-              <ImageUpload
-                label="Logo"
-                value={businessForm.logoUrl || undefined}
-                onChange={(url) => handleBusinessChange("logoUrl", url)}
-                variant="logo"
-              />
+            <div className="grid gap-4 md:grid-cols-12">
+              <div className="md:col-span-6">
+                <Input
+                  label="Company name *"
+                  placeholder="e.g. Bukit Gaming Lounge"
+                  value={businessForm.companyName}
+                  onChange={(e) =>
+                    handleBusinessChange("companyName", e.target.value)
+                  }
+                  error={step1Errors.fields.companyName ?? undefined}
+                />
+              </div>
+              <div className="md:col-span-6">
+                <Input
+                  label="Contact person"
+                  placeholder="Primary contact person"
+                  value={businessForm.contactName}
+                  onChange={(e) =>
+                    handleBusinessChange("contactName", e.target.value)
+                  }
+                  error={step1Errors.fields.contactName ?? undefined}
+                />
+              </div>
+              <div className="md:col-span-6">
+                <Input
+                  label="Email *"
+                  type="email"
+                  placeholder="contact@business.com"
+                  value={businessForm.email}
+                  onChange={(e) => handleBusinessChange("email", e.target.value)}
+                  error={step1Errors.fields.email ?? undefined}
+                />
+              </div>
+              <div className="md:col-span-6">
+                <Input
+                  label="Phone"
+                  placeholder="+1 555 123 4567"
+                  value={businessForm.phone}
+                  onChange={(e) => handleBusinessChange("phone", e.target.value)}
+                  error={step1Errors.fields.phone ?? undefined}
+                />
+              </div>
+              <div className="md:col-span-4">
+                <Input
+                  label="City"
+                  value={businessForm.city}
+                  onChange={(e) => handleBusinessChange("city", e.target.value)}
+                />
+              </div>
+              <div className="md:col-span-4">
+                <Input
+                  label="Country"
+                  value={businessForm.country}
+                  onChange={(e) =>
+                    handleBusinessChange("country", e.target.value)
+                  }
+                />
+              </div>
+              <div className="md:col-span-4">
+                <Input
+                  label="Tax ID"
+                  placeholder="Tax identification number"
+                  value={businessForm.taxId}
+                  onChange={(e) => handleBusinessChange("taxId", e.target.value)}
+                />
+              </div>
+              <div className="md:col-span-6">
+                <Input
+                  label="Registration number"
+                  placeholder="Company registration number"
+                  value={businessForm.registrationNumber}
+                  onChange={(e) =>
+                    handleBusinessChange("registrationNumber", e.target.value)
+                  }
+                />
+              </div>
+              <div className="md:col-span-6">
+                <ImageUpload
+                  label="Logo"
+                  value={businessForm.logoUrl || undefined}
+                  onChange={(url) => handleBusinessChange("logoUrl", url)}
+                  variant="logo"
+                />
+              </div>
             </div>
             <Input
               label="Description"
@@ -662,67 +686,83 @@ export default function ClientOnboardingPage() {
                     )}
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <Input
-                      label="Location name *"
-                      placeholder="e.g. Downtown Branch"
-                      value={loc.name}
-                      onChange={(e) =>
-                        handleLocationChange(index, "name", e.target.value)
-                      }
-                      error={
-                        step2Errors.fields[`${index}.name`] ?? undefined
-                      }
-                    />
-                    <Input
-                      label="Phone"
-                      placeholder="+1 555 123 4567"
-                      value={loc.phone || ""}
-                      onChange={(e) =>
-                        handleLocationChange(index, "phone", e.target.value)
-                      }
-                    />
-                    <Input
-                      label="Address"
-                      placeholder="Street and number"
-                      value={loc.address || ""}
-                      onChange={(e) =>
-                        handleLocationChange(index, "address", e.target.value)
-                      }
-                    />
-                    <Input
-                      label="City"
-                      placeholder="City"
-                      value={loc.city || ""}
-                      onChange={(e) =>
-                        handleLocationChange(index, "city", e.target.value)
-                      }
-                    />
-                    <Input
-                      label="State / Region"
-                      placeholder="State or region"
-                      value={loc.state || ""}
-                      onChange={(e) =>
-                        handleLocationChange(index, "state", e.target.value)
-                      }
-                    />
-                    <Input
-                      label="Country"
-                      placeholder="Country"
-                      value={loc.country || ""}
-                      onChange={(e) =>
-                        handleLocationChange(index, "country", e.target.value)
-                      }
-                    />
-                    <Input
-                      label="Postal code"
-                      placeholder="ZIP or postal code"
-                      value={loc.postal_code || ""}
-                      onChange={(e) =>
-                        handleLocationChange(index, "postal_code", e.target.value)
-                      }
-                    />
-                    <div className="md:col-span-2">
+                  <div className="grid gap-4 md:grid-cols-12">
+                    <div className="md:col-span-6">
+                      <Input
+                        label="Location name *"
+                        placeholder="e.g. Downtown Branch"
+                        value={loc.name}
+                        onChange={(e) =>
+                          handleLocationChange(index, "name", e.target.value)
+                        }
+                        error={step2Errors.fields[`${index}.name`] ?? undefined}
+                      />
+                    </div>
+                    <div className="md:col-span-6">
+                      <Input
+                        label="Phone"
+                        placeholder="+1 555 123 4567"
+                        value={loc.phone || ""}
+                        onChange={(e) =>
+                          handleLocationChange(index, "phone", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="md:col-span-8">
+                      <Input
+                        label="Address"
+                        placeholder="Street and number"
+                        value={loc.address || ""}
+                        onChange={(e) =>
+                          handleLocationChange(index, "address", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="md:col-span-4">
+                      <Input
+                        label="City"
+                        placeholder="City"
+                        value={loc.city || ""}
+                        onChange={(e) =>
+                          handleLocationChange(index, "city", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="md:col-span-4">
+                      <Input
+                        label="State / Region"
+                        placeholder="State or region"
+                        value={loc.state || ""}
+                        onChange={(e) =>
+                          handleLocationChange(index, "state", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="md:col-span-4">
+                      <Input
+                        label="Country"
+                        placeholder="Country"
+                        value={loc.country || ""}
+                        onChange={(e) =>
+                          handleLocationChange(index, "country", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="md:col-span-4">
+                      <Input
+                        label="Postal code"
+                        placeholder="ZIP or postal code"
+                        value={loc.postal_code || ""}
+                        onChange={(e) =>
+                          handleLocationChange(
+                            index,
+                            "postal_code",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="md:col-span-12">
                       <ImageGallery
                         label="Location image gallery"
                         value={loc.image_urls ?? []}
@@ -821,7 +861,7 @@ export default function ClientOnboardingPage() {
                     </div>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-4 md:grid-cols-12">
                     <Input
                       label="Name *"
                       placeholder="e.g. Gaming Zone A, Court 1"
@@ -833,7 +873,7 @@ export default function ClientOnboardingPage() {
                         step3Errors.fields[`${index}.name`] ?? undefined
                       }
                     />
-                    <div>
+                    <div className="md:col-span-6">
                       <label className="mb-1 block text-xs font-medium text-text-secondary">
                         Facility type *
                       </label>
@@ -857,7 +897,7 @@ export default function ClientOnboardingPage() {
                         ))}
                       </select>
                     </div>
-                    <div>
+                    <div className="md:col-span-6">
                       <label className="mb-1 block text-xs font-medium text-text-secondary">
                         Facility *
                       </label>
@@ -883,7 +923,7 @@ export default function ClientOnboardingPage() {
                       )}
                     </div>
 
-                    <div>
+                    <div className="md:col-span-6">
                       <label className="mb-1 block text-xs font-medium text-text-secondary">
                         Location *
                       </label>
@@ -912,7 +952,7 @@ export default function ClientOnboardingPage() {
                       )}
                     </div>
 
-                    <div>
+                    <div className="md:col-span-6">
                       <label className="mb-1 block text-xs font-medium text-text-secondary">
                         Status
                       </label>

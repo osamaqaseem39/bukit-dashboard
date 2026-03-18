@@ -525,7 +525,7 @@ export default function SettingsPage() {
 
   if (user?.role !== "client") {
     return (
-      <div className="space-y-6">
+      <div className="mx-auto w-full max-w-5xl space-y-6 px-4 sm:px-6">
         <div>
           <h1 className="text-2xl font-semibold text-text-primary">Settings</h1>
           <p className="mt-1 text-sm text-text-secondary">
@@ -537,7 +537,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-5xl space-y-6 px-4 sm:px-6">
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-semibold text-text-primary">Settings</h1>
@@ -606,75 +606,95 @@ export default function SettingsPage() {
             </h2>
           </CardHeader>
           <CardContent className="flex flex-col gap-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              <Input
-                label="Company Name *"
-                value={businessForm.company_name}
-                onChange={(e) =>
-                  setBusinessForm({ ...businessForm, company_name: e.target.value })
-                }
-              />
-              <Input
-                label="Contact Name"
-                value={businessForm.contact_name}
-                onChange={(e) =>
-                  setBusinessForm({ ...businessForm, contact_name: e.target.value })
-                }
-              />
-              <Input
-                label="Email *"
-                type="email"
-                value={businessForm.email}
-                onChange={(e) =>
-                  setBusinessForm({ ...businessForm, email: e.target.value })
-                }
-              />
-              <Input
-                label="Phone"
-                type="tel"
-                value={businessForm.phone}
-                onChange={(e) =>
-                  setBusinessForm({ ...businessForm, phone: e.target.value })
-                }
-              />
-              <Input
-                label="Tax ID"
-                value={businessForm.tax_id}
-                onChange={(e) =>
-                  setBusinessForm({ ...businessForm, tax_id: e.target.value })
-                }
-              />
-              <Input
-                label="Registration Number"
-                value={businessForm.company_registration_number}
-                onChange={(e) =>
-                  setBusinessForm({
-                    ...businessForm,
-                    company_registration_number: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="grid gap-6 md:grid-cols-2">
-              <ImageUpload
-                label="Logo"
-                value={businessForm.logo_url || undefined}
-                onChange={(url) =>
-                  setBusinessForm({ ...businessForm, logo_url: url })
-                }
-                variant="logo"
-              />
-              <ImageUpload
-                label="Cover image"
-                value={businessForm.cover_image_url || undefined}
-                onChange={(url) =>
-                  setBusinessForm({
-                    ...businessForm,
-                    cover_image_url: url,
-                  })
-                }
-                variant="cover"
-              />
+            <div className="grid gap-6 md:grid-cols-12">
+              <div className="md:col-span-6">
+                <Input
+                  label="Company Name *"
+                  value={businessForm.company_name}
+                  onChange={(e) =>
+                    setBusinessForm({
+                      ...businessForm,
+                      company_name: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="md:col-span-6">
+                <Input
+                  label="Contact Name"
+                  value={businessForm.contact_name}
+                  onChange={(e) =>
+                    setBusinessForm({
+                      ...businessForm,
+                      contact_name: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="md:col-span-6">
+                <Input
+                  label="Email *"
+                  type="email"
+                  value={businessForm.email}
+                  onChange={(e) =>
+                    setBusinessForm({ ...businessForm, email: e.target.value })
+                  }
+                />
+              </div>
+              <div className="md:col-span-6">
+                <Input
+                  label="Phone"
+                  type="tel"
+                  value={businessForm.phone}
+                  onChange={(e) =>
+                    setBusinessForm({ ...businessForm, phone: e.target.value })
+                  }
+                />
+              </div>
+              <div className="md:col-span-6">
+                <Input
+                  label="Tax ID"
+                  value={businessForm.tax_id}
+                  onChange={(e) =>
+                    setBusinessForm({ ...businessForm, tax_id: e.target.value })
+                  }
+                />
+              </div>
+              <div className="md:col-span-6">
+                <Input
+                  label="Registration Number"
+                  value={businessForm.company_registration_number}
+                  onChange={(e) =>
+                    setBusinessForm({
+                      ...businessForm,
+                      company_registration_number: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="md:col-span-6">
+                <ImageUpload
+                  label="Logo"
+                  value={businessForm.logo_url || undefined}
+                  onChange={(url) =>
+                    setBusinessForm({ ...businessForm, logo_url: url })
+                  }
+                  variant="logo"
+                />
+              </div>
+              <div className="md:col-span-6">
+                <ImageUpload
+                  label="Cover image"
+                  value={businessForm.cover_image_url || undefined}
+                  onChange={(url) =>
+                    setBusinessForm({
+                      ...businessForm,
+                      cover_image_url: url,
+                    })
+                  }
+                  variant="cover"
+                />
+              </div>
             </div>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-text-primary mb-1.5">
@@ -730,31 +750,43 @@ export default function SettingsPage() {
                   >
                     {editingLocation === location.id ? (
                       <div className="space-y-4">
-                        <div className="grid gap-4 md:grid-cols-2">
-                          <Input
-                            label="Location Name *"
-                            value={locationForm.name || ""}
-                            onChange={(e) =>
-                              setLocationForm({ ...locationForm, name: e.target.value })
-                            }
-                          />
-                          <Input
-                            label="Phone"
-                            value={locationForm.phone || ""}
-                            onChange={(e) =>
-                              setLocationForm({ ...locationForm, phone: e.target.value })
-                            }
-                          />
-                          <Input
-                            label="Address"
-                            value={locationForm.address || ""}
-                            onChange={(e) =>
-                              setLocationForm({
-                                ...locationForm,
-                                address: e.target.value,
-                              })
-                            }
-                          />
+                        <div className="grid gap-4 md:grid-cols-12">
+                          <div className="md:col-span-6">
+                            <Input
+                              label="Location Name *"
+                              value={locationForm.name || ""}
+                              onChange={(e) =>
+                                setLocationForm({
+                                  ...locationForm,
+                                  name: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="md:col-span-6">
+                            <Input
+                              label="Phone"
+                              value={locationForm.phone || ""}
+                              onChange={(e) =>
+                                setLocationForm({
+                                  ...locationForm,
+                                  phone: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="md:col-span-12">
+                            <Input
+                              label="Address"
+                              value={locationForm.address || ""}
+                              onChange={(e) =>
+                                setLocationForm({
+                                  ...locationForm,
+                                  address: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
                         </div>
                         <div>
                           <label className="block text-xs font-semibold uppercase tracking-wider text-text-primary mb-1.5">
@@ -909,30 +941,34 @@ export default function SettingsPage() {
                             </button>
                           </div>
                           <div className="space-y-4">
-                            <div className="grid gap-4 md:grid-cols-2">
-                              <Input
-                                label="Facility Name *"
-                                value={newFacilityForm.name}
-                                onChange={(e) =>
-                                  setNewFacilityForm({
-                                    ...newFacilityForm,
-                                    name: e.target.value,
-                                  })
-                                }
-                              />
-                              <Input
-                                label="Type *"
-                                value={newFacilityForm.type}
-                                onChange={(e) =>
-                                  setNewFacilityForm({
-                                    ...newFacilityForm,
-                                    type: e.target.value,
-                                  })
-                                }
-                                placeholder="e.g., gaming-pc, vr, ps5, futsal-field"
-                              />
+                            <div className="grid gap-4 md:grid-cols-12">
+                              <div className="md:col-span-6">
+                                <Input
+                                  label="Facility Name *"
+                                  value={newFacilityForm.name}
+                                  onChange={(e) =>
+                                    setNewFacilityForm({
+                                      ...newFacilityForm,
+                                      name: e.target.value,
+                                    })
+                                  }
+                                />
+                              </div>
+                              <div className="md:col-span-6">
+                                <Input
+                                  label="Type *"
+                                  value={newFacilityForm.type}
+                                  onChange={(e) =>
+                                    setNewFacilityForm({
+                                      ...newFacilityForm,
+                                      type: e.target.value,
+                                    })
+                                  }
+                                  placeholder="e.g., gaming-pc, vr, ps5, futsal-field"
+                                />
+                              </div>
                               {newFacilityForm.type === "gaming-pc" && (
-                                <div className="md:col-span-2 space-y-3">
+                                <div className="md:col-span-12 space-y-3">
                                   <div className="flex items-center justify-between">
                                     <span className="text-sm font-medium text-text-primary">
                                       PC units & specs
@@ -1098,31 +1134,35 @@ export default function SettingsPage() {
                                 newFacilityForm.type === "ps5" ||
                                 newFacilityForm.type === "xbox") && (
                                 <>
-                                  <Input
-                                    label="Screen size (inches)"
-                                    type="number"
-                                    value={newFacilityForm.screenSizeInches}
-                                    onChange={(e) =>
-                                      setNewFacilityForm({
-                                        ...newFacilityForm,
-                                        screenSizeInches: e.target.value,
-                                      })
-                                    }
-                                  />
-                                  <Input
-                                    label="Games available"
-                                    placeholder="e.g., FIFA, COD, GTA"
-                                    value={newFacilityForm.gamesAvailable}
-                                    onChange={(e) =>
-                                      setNewFacilityForm({
-                                        ...newFacilityForm,
-                                        gamesAvailable: e.target.value,
-                                      })
-                                    }
-                                  />
+                                  <div className="md:col-span-6">
+                                    <Input
+                                      label="Screen size (inches)"
+                                      type="number"
+                                      value={newFacilityForm.screenSizeInches}
+                                      onChange={(e) =>
+                                        setNewFacilityForm({
+                                          ...newFacilityForm,
+                                          screenSizeInches: e.target.value,
+                                        })
+                                      }
+                                    />
+                                  </div>
+                                  <div className="md:col-span-6">
+                                    <Input
+                                      label="Games available"
+                                      placeholder="e.g., FIFA, COD, GTA"
+                                      value={newFacilityForm.gamesAvailable}
+                                      onChange={(e) =>
+                                        setNewFacilityForm({
+                                          ...newFacilityForm,
+                                          gamesAvailable: e.target.value,
+                                        })
+                                      }
+                                    />
+                                  </div>
                                 </>
                               )}
-                              <div>
+                              <div className="md:col-span-6">
                                 <label className="block text-sm font-medium text-text-primary mb-2">
                                   Status
                                 </label>
@@ -1182,29 +1222,33 @@ export default function SettingsPage() {
                             >
                               {editingFacility === facility.id ? (
                                 <div className="space-y-4">
-                                  <div className="grid gap-4 md:grid-cols-2">
-                                    <Input
-                                      label="Facility Name *"
-                                      value={facilityForm.name || ""}
-                                      onChange={(e) =>
-                                        setFacilityForm({
-                                          ...facilityForm,
-                                          name: e.target.value,
-                                        })
-                                      }
-                                    />
-                                    <Input
-                                      label="Type"
-                                      value={facilityForm.type || ""}
-                                      onChange={(e) =>
-                                        setFacilityForm({
-                                          ...facilityForm,
-                                          type: e.target.value,
-                                        })
-                                      }
-                                    />
+                                  <div className="grid gap-4 md:grid-cols-12">
+                                    <div className="md:col-span-6">
+                                      <Input
+                                        label="Facility Name *"
+                                        value={facilityForm.name || ""}
+                                        onChange={(e) =>
+                                          setFacilityForm({
+                                            ...facilityForm,
+                                            name: e.target.value,
+                                          })
+                                        }
+                                      />
+                                    </div>
+                                    <div className="md:col-span-6">
+                                      <Input
+                                        label="Type"
+                                        value={facilityForm.type || ""}
+                                        onChange={(e) =>
+                                          setFacilityForm({
+                                            ...facilityForm,
+                                            type: e.target.value,
+                                          })
+                                        }
+                                      />
+                                    </div>
                                     {facilityForm.type === "gaming-pc" && (
-                                      <div className="md:col-span-2 space-y-3">
+                                      <div className="md:col-span-12 space-y-3">
                                         <div className="flex items-center justify-between">
                                           <span className="text-sm font-medium text-text-primary">
                                             PC units & specs
@@ -1374,31 +1418,37 @@ export default function SettingsPage() {
                                       facilityForm.type === "ps5" ||
                                       facilityForm.type === "xbox") && (
                                       <>
-                                        <Input
-                                          label="Screen size (inches)"
-                                          type="number"
-                                          value={facilityForm.screenSizeInches || ""}
-                                          onChange={(e) =>
-                                            setFacilityForm({
-                                              ...facilityForm,
-                                              screenSizeInches: e.target.value,
-                                            })
-                                          }
-                                        />
-                                        <Input
-                                          label="Games available"
-                                          placeholder="e.g., FIFA, COD, GTA"
-                                          value={facilityForm.gamesAvailable || ""}
-                                          onChange={(e) =>
-                                            setFacilityForm({
-                                              ...facilityForm,
-                                              gamesAvailable: e.target.value,
-                                            })
-                                          }
-                                        />
+                                        <div className="md:col-span-6">
+                                          <Input
+                                            label="Screen size (inches)"
+                                            type="number"
+                                            value={
+                                              facilityForm.screenSizeInches || ""
+                                            }
+                                            onChange={(e) =>
+                                              setFacilityForm({
+                                                ...facilityForm,
+                                                screenSizeInches: e.target.value,
+                                              })
+                                            }
+                                          />
+                                        </div>
+                                        <div className="md:col-span-6">
+                                          <Input
+                                            label="Games available"
+                                            placeholder="e.g., FIFA, COD, GTA"
+                                            value={facilityForm.gamesAvailable || ""}
+                                            onChange={(e) =>
+                                              setFacilityForm({
+                                                ...facilityForm,
+                                                gamesAvailable: e.target.value,
+                                              })
+                                            }
+                                          />
+                                        </div>
                                       </>
                                     )}
-                                    <div>
+                                    <div className="md:col-span-6">
                                       <label className="block text-sm font-medium text-text-primary mb-2">
                                         Status
                                       </label>
