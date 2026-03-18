@@ -74,29 +74,12 @@ export default function UsersPage() {
     const rawModules = (user.modules?.filter(Boolean) ??
       []) as DashboardModuleKey[];
 
-    // Normalize legacy sports modules into the unified Arena module
-    const currentModules = new Set<DashboardModuleKey>();
-    for (const mod of rawModules) {
-      if (mod === "cricket" || mod === "futsal-turf" || mod === "padel") {
-        currentModules.add("arena");
-      } else {
-        currentModules.add(mod);
-      }
-    }
+    const currentModules = new Set<DashboardModuleKey>(rawModules);
 
-    if (moduleKey === "arena") {
-      if (currentModules.has("arena")) {
-        currentModules.delete("arena");
-      } else {
-        // Ensure only the unified Arena module is used going forward
-        currentModules.add("arena");
-      }
+    if (currentModules.has(moduleKey)) {
+      currentModules.delete(moduleKey);
     } else {
-      if (currentModules.has(moduleKey)) {
-        currentModules.delete(moduleKey);
-      } else {
-        currentModules.add(moduleKey);
-      }
+      currentModules.add(moduleKey);
     }
 
     const nextModules =

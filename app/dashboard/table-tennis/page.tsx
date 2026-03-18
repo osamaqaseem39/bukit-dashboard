@@ -12,7 +12,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/Table";
+} from "@/components/ui\Table";
 import Modal from "@/components/ui/Modal";
 
 const tableTennisFacilities = [

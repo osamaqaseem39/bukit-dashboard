@@ -167,13 +167,6 @@ export async function registerApi(data: {
 
 export type DashboardModuleKey =
   | "dashboard-overview"
-  | "gaming"
-  | "snooker"
-  | "table-tennis"
-  | "arena"
-  | "cricket"
-  | "futsal-turf"
-  | "padel"
   | "locations"
   | "users"
   | "bookings"

@@ -18,14 +18,26 @@ export default function ProtectedRoute({
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading) {
-      if (!isAuthenticated) {
-        router.replace(`/login?next=${encodeURIComponent(pathname)}`);
-      } else if (allowedRoles && !hasRole(allowedRoles)) {
-        router.replace("/dashboard");
-      }
+    if (loading) return;
+
+    if (!isAuthenticated) {
+      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+      return;
     }
-  }, [loading, isAuthenticated, allowedRoles, hasRole, router, pathname]);
+
+    if (allowedRoles && !hasRole(allowedRoles)) {
+      router.replace("/dashboard");
+      return;
+    }
+
+  }, [
+    loading,
+    isAuthenticated,
+    allowedRoles,
+    hasRole,
+    router,
+    pathname,
+  ]);
 
   if (loading || !isAuthenticated) {
     return (
